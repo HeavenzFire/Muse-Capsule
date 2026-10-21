@@ -1,0 +1,16 @@
+# sovereign-node config — ASUS laptop (flat key: value only; # comments)
+# Copied to $HOME\sovereign-node\bin\config.yaml on install.
+# The installer never overwrites an existing config.yaml.
+
+node_name: asus-node
+bind: 127.0.0.1            # loopback only. node.py refuses anything else.
+mesh_health_port: 18091    # mesh-daemon /mesh-health lives here
+node_port: 18090           # supervisor /node-health lives here
+data_dir: ../data          # relative to bin/ -> $HOME\sovereign-node\data
+mesh_name: asus-mesh
+mesh_seeds: ""             # "host:port,host:port" — loopback peers only for now
+mesh_capabilities: "compute"
+attest_interval_s: 600.0
+max_restarts: 5            # then the child is parked (no more restarts)
+restart_backoff_base: 1.0
+shutdown_timeout: 5        # seconds to wait before SIGKILL on shutdown
