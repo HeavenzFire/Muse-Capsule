@@ -9,7 +9,7 @@ import urllib.error
 import urllib.request
 
 
-class ProviderError(ConnectionError):
+class ProviderError(RuntimeError):
     """A configured model provider could not complete a request."""
 
 
