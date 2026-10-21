@@ -1,0 +1,24 @@
+name: Unified Field Federation Contract
+
+on:
+  pull_request:
+    paths:
+      - "field/federation/**"
+      - ".github/workflows/unified-field-federation.yml"
+  push:
+    branches: [main]
+    paths:
+      - "field/federation/**"
+      - ".github/workflows/unified-field-federation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate-registry:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Validate federation registry
+        run: python field/federation/validate_registry.py
