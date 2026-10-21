@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0",
+  "name": "Muse Capsule",
+  "capsule_id": "muse-capsule",
+  "integration_target": "existing HeavenzFire Unified Field",
+  "status": "coordination-channel-initialized",
+  "source": {
+    "repository": null,
+    "export_path": null
+  },
+  "runtime": {
+    "entrypoint": null,
+    "verified": false
+  },
+  "adapters": {
+    "unified_field": "pending_handshake",
+    "browser": "pending_handshake",
+    "voice": "pending_handshake"
+  },
+  "security": {
+    "secrets_committed": false,
+    "least_privilege": true,
+    "sensitive_actions_require_approval": true
+  },
+  "verification": {
+    "repository_channel": "initialized",
+    "runtime": "not_run",
+    "integration": "not_run"
+  }
+}
