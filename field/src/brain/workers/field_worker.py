@@ -10,6 +10,9 @@ import os
 import urllib.request
 
 CAPABILITIES = ["field.status"]
+# Liveness is a measurement of right now; a cached answer reports the
+# past as the present. Never serve this capability from the result cache.
+STATEFUL_CAPABILITIES = ["field.status"]
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _BRAIN_DIR = os.path.dirname(_HERE)

@@ -31,6 +31,17 @@ Verified live: 2026-10-21 ~06:10 CDT. Supervisor: systemd unit
    launched them (nohup was not enough). Now under systemd +
    supervisor restart loops. Kill test: brain SIGTERM -> back in ~2s,
    chain verified intact.
+4. **Truthful measurements (kernel dedup):** the kernel's idempotency
+   cache served settled results for ANY capability, so field.status
+   (liveness) and capsule.verify (hash verification) answered from
+   memory — the past reported as the present (observed live:
+   field.status returning _dedup=true). Fix: workers declare
+   STATEFUL_CAPABILITIES; kernel.submit bypasses the cache for them
+   (results still settle into the audit log). Deterministic
+   capabilities keep dedup (verified: diag.check second submit still
+   _dedup). Kernel self-test green incl. a stateful regression;
+   live-verified after supervisor restart. Backups:
+   kernel.py.bak-20261021-dedup (+ both workers).
 
 ## DARK (honest reasons)
 
@@ -47,7 +58,9 @@ Verified live: 2026-10-21 ~06:10 CDT. Supervisor: systemd unit
 - P3 durability: kernel result cache is in-memory; a task in flight at
   kill time is ledgered but not resumed after restart. Retries exist
   inside kernel.submit (max_retries + quarantine).
-- P4 R&D loop: not yet standing as a continuous cycle.
+- P4 R&D loop: standing (field/rd_loop.py, 10-min cycle under the
+  supervisor, hash-chained cycle log). It runs machine-checkable
+  verifications; items needing a mind queue as awaiting_mind.
 
 ## Keys
 

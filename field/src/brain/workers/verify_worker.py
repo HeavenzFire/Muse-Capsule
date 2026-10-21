@@ -11,6 +11,9 @@ import json
 import os
 
 CAPABILITIES = ["capsule.verify"]
+# Verification must hash the files as they are at call time; a cached
+# verdict would keep blessing drift. Never serve from the result cache.
+STATEFUL_CAPABILITIES = ["capsule.verify"]
 
 HOME = os.path.expanduser("~")
 # Anchor to this file's tree (workers/ -> prime-brain-build/ -> workspace/)

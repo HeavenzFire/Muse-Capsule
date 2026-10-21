@@ -149,6 +149,7 @@ class Kernel:
         self.log = EventLog(log_path)
         self.workers = {}
         self.cap2worker = {}
+        self.stateful_caps = set()
         self._lock = threading.Lock()
         self._results = {}
         self._consec_fail = {}
@@ -161,8 +162,12 @@ class Kernel:
         self.workers[name] = module
         for cap in getattr(module, "CAPABILITIES", []):
             self.cap2worker[cap] = name
+        for cap in getattr(module, "STATEFUL_CAPABILITIES", []):
+            self.stateful_caps.add(cap)
         self.log.append("worker_registered", worker=name,
-                        capabilities=list(getattr(module, "CAPABILITIES", [])))
+                        capabilities=list(getattr(module, "CAPABILITIES", [])),
+                        stateful=sorted(getattr(module,
+                                                "STATEFUL_CAPABILITIES", [])))
 
     # ---- approvals (consent gate) ----
     def approve(self, task_id):
@@ -180,7 +185,12 @@ class Kernel:
         tid = make_task_id(task)
         cap = task.get("capability")
         with self._lock:
-            if tid in self._results:
+            # Dedup serves a settled result only when the capability's
+            # answer depends on its args alone. Stateful capabilities are
+            # measurements of the world right now (liveness, verification):
+            # serving them from cache reports the past as the present, so
+            # they always re-run. Their results still settle into the log.
+            if tid in self._results and cap not in self.stateful_caps:
                 self.log.append("dedup_hit", task_id=tid, capability=cap)
                 return dict(self._results[tid], _dedup=True)
         self.log.append("submitted", task_id=tid, capability=cap,
@@ -349,12 +359,24 @@ def _self_test():
         def run(task, signal):
             raise RuntimeError("always fails")
 
+    class LiveWorker:
+        CAPABILITIES = ["test.live"]
+        STATEFUL_CAPABILITIES = ["test.live"]
+        calls = 0
+
+        @staticmethod
+        def run(task, signal):
+            LiveWorker.calls += 1
+            return {"ok": True, "reading": LiveWorker.calls}
+
     def run_suite(log_path):
         FlakyWorker.calls = 0
+        LiveWorker.calls = 0
         k = Kernel(log_path=log_path)
         k.register("ok", OkWorker)
         k.register("flaky", FlakyWorker)
         k.register("dead", DeadWorker)
+        k.register("live", LiveWorker)
         results = []
         for i in range(50):
             if i % 5 == 4:
@@ -367,6 +389,14 @@ def _self_test():
         # idempotency: resubmit first task
         dup = k.submit({"capability": "test.echo", "args": {"v": 0}}, timeout=5)
         assert dup.get("_dedup") is True, "idempotency dedup failed"
+        # stateful capabilities never serve from cache: the identical
+        # task must re-run and return the fresh reading both times
+        live1 = k.submit({"capability": "test.live", "args": {}}, timeout=5)
+        live2 = k.submit({"capability": "test.live", "args": {}}, timeout=5)
+        assert live1.get("reading") == 1 and live2.get("reading") == 2, \
+            "stateful capability served stale: %r %r" % (live1, live2)
+        assert "_dedup" not in live1 and "_dedup" not in live2, \
+            "stateful capability returned a dedup hit"
         # determinism: same task id twice
         assert make_task_id({"capability": "a", "args": {"x": 1}}) == \
             make_task_id({"args": {"x": 1}, "capability": "a"})
