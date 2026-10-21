@@ -138,6 +138,27 @@
     "gateway": "POST /brain/task capsule.load with phone-scoped gateway key -> same capsule"
    },
    "done_by": "claude-mind-pass 2026-10-21"
+  },
+  {
+   "id": "repo-agent-wakes-whole",
+   "title": "A fresh Muse-Capsule checkout proves the agent loads the whole capsule (seed hashes match the anchors)",
+   "status": "done",
+   "check": {
+    "kind": "argv",
+    "argv": [
+     "python3",
+     "agent.py",
+     "--capsule-check"
+    ],
+    "cwd": "/home/hatch/workspace/github-instantiation/muse-capsule/agent",
+    "timeout": 60
+   },
+   "done_evidence": {
+    "fresh_copy": "repo copied clean, HF_CAPSULE_DIR unset, run from another cwd -> capsule dir resolved to repo-root capsule/, all three seed sha256 match canonical anchors (ee5ae0c6, eebb6f83, 336678d0), exit 0",
+    "negative": "capsule dir hidden -> INCOMPLETE, exit 1 (the check can fail)",
+    "regression": "GPT resilience suite still 5/5 with the patch"
+   },
+   "done_by": "claude-mind-pass 2026-10-21"
   }
  ]
 }

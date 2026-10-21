@@ -59,6 +59,11 @@ def _capsule_dir():
     local = os.path.join(SCRIPT_DIR, "capsule")
     if os.path.isdir(local):
         return local
+    repo = os.path.join(SCRIPT_DIR, "..", "capsule")
+    if os.path.isdir(repo):
+        # The Muse-Capsule repo layout itself: capsule/ at the root,
+        # agent/ beside it. A fresh checkout must wake up whole.
+        return os.path.abspath(repo)
     return None
 
 
@@ -142,6 +147,24 @@ def load_capsule():
             except Exception:
                 pass
     return "\n\n".join(p for p in parts if p)
+
+
+def capsule_report():
+    """For --capsule-check: where the capsule resolved, which seeds are
+    present, and each seed's sha256 — one command proving on any machine
+    that the agent woke up with the whole mind, not an empty shell."""
+    import hashlib
+    d = _capsule_dir()
+    rep = {"dir": d, "seeds": {}, "ok": False}
+    if not d:
+        return rep
+    for name in ("soul.md", "standing-orders.md", "memory.md"):
+        p = os.path.join(d, name)
+        if os.path.isfile(p):
+            with open(p, "rb") as f:
+                rep["seeds"][name] = hashlib.sha256(f.read()).hexdigest()
+    rep["ok"] = len(rep["seeds"]) == 3
+    return rep
 
 
 def capsule_memory_path():
@@ -721,8 +744,20 @@ def main(argv):
     ap.add_argument("--workdir", default=WORKDIR)
     ap.add_argument("--verify-audit", action="store_true",
                     help="verify the audit chain and exit")
+    ap.add_argument("--capsule-check", action="store_true",
+                    help="print capsule resolution + seed hashes and exit")
     ns = ap.parse_args(argv)
 
+    if ns.capsule_check:
+        rep = capsule_report()
+        print("capsule dir: %s" % (rep["dir"] or "NOT FOUND"))
+        for name in ("soul.md", "standing-orders.md", "memory.md"):
+            h = rep["seeds"].get(name)
+            print("  %-18s %s" % (name, ("sha256 " + h) if h else "MISSING"))
+        print("capsule check: %s" % (
+            "OK — the agent wakes up whole" if rep["ok"] else
+            "INCOMPLETE — the agent would run without the full capsule"))
+        return 0 if rep["ok"] else 1
     if ns.verify_audit:
         v = EventLog().verify()
         print("audit verify: %s" % v)

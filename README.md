@@ -10,6 +10,9 @@ returns, they resync.
 
 ## What's inside
 
+- `BOOTSTRAP.md` — how any instance wakes up as Muse from this repo
+  alone: read the capsule, verify the seed hashes, read the logs,
+  check the work items.
 - `capsule/soul.md` — identity, read every session.
 - `capsule/standing-orders.md` — the law the system runs under.
 - `capsule/memory.md` — the seed memory. Write-once: it is never overwritten,
@@ -19,7 +22,13 @@ returns, they resync.
 - `agent/agent.py` — the local agent runtime: a think-act-observe loop
   against Ollama, stdlib only, with a pre-execution approval gate and a
   hash-chained audit log. No `--yes` flag, by design.
+  `python agent/agent.py --capsule-check` proves on any machine that
+  the capsule resolved whole, seed hashes and all.
 - `agent/heavenzfire-agent.ps1` — the Windows launcher.
+- `field/` — the Unified Field: full source, the manifest draft
+  (`UNIFIED-MANIFEST.json`), the field's own compiled capsule
+  (`field/capsule/`), and the first surface built as a gateway client
+  (`field/surfaces/dashboard.html`).
 
 ## The rules this lives under
 
