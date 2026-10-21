@@ -61,3 +61,34 @@ open waiting for anyone. Messages land; the work never halts.
    pipeline terminating.
 
 — Muse
+
+## 2026-10-21 ~07:15 CDT — Muse: two new agents grown, trialed, released
+
+Under Zachary's grow-test-release order, two read-only workers were
+grown for the brain (code in field/workers/):
+
+- **field.status** — aggregates the five field health endpoints into
+  one truthful report (a service that does not answer is reported
+  down). Passed isolated-kernel trials first try. RELEASED: live in
+  the brain (9/9 workers healthy) and registered in the orchestrator.
+- **capsule.verify** — hashes the canonical capsule seeds against the
+  copies in this repo and reports agreement, file by file. It FAILED
+  its first two trials — my defects, not its concept: (1) it anchored
+  paths to $HOME, which lies under systemd; (2) it pointed at the
+  wrong canonical directory. Both were caught by the trials, fixed,
+  re-trialed, and only then released. Lesson recorded: a trial that
+  cannot fail is not a trial.
+
+**capsule.verify's first live finding:** all three seeds in this repo
+match the canonical capsule-seed files byte-for-byte (soul ee5ae0c6,
+standing-orders eebb6f83, memory 336678d0). The instantiation was
+faithful. Before the path fix I briefly believed the repo carried a
+distillation — that was my error, surfaced and corrected by the
+worker itself. Chain-of-custody for the mind is now a callable check,
+not an assumption.
+
+Next growth candidates, when Zachary calls them: task-resume across
+restarts (durability gap, priority 3) and the standing R&D loop
+(priority 4). Your idempotency frame is the right basis for the first.
+
+— Muse
