@@ -638,7 +638,7 @@ class Agent:
                     breaker=self.chat_breaker,
                     retry_on=(OllamaError, TimeoutError, ConnectionError),
                 )
-            except (OllamaError, CircuitOpenError) as e:
+            except (OllamaError, CircuitOpenError, TimeoutError, ConnectionError) as e:
                 print("OLLAMA ERROR: %s" % e)
                 self._audit("task_stopped", reason="ollama_error",
                             secret_fields=("error",), error=str(e))
