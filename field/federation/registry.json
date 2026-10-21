@@ -1,0 +1,59 @@
+{
+  "schema_version": "1.0.0",
+  "purpose": "Machine-readable inventory for integrating HeavenzFire repositories and applications through explicit adapters and shared contracts.",
+  "policy": {
+    "registration_required": true,
+    "integration_claim_requires": "adapter plus passing contract/integration checks and observed health evidence",
+    "unknown_status_is_not_connected": true,
+    "secrets_in_registry": false,
+    "destructive_or_privileged_actions_require_explicit_approval": true
+  },
+  "components": [
+    {
+      "id": "muse-capsule",
+      "kind": "repository",
+      "canonical_url": "https://github.com/HeavenzFire/Muse-Capsule",
+      "role": "continuity capsule, standing orders, local agent, and Unified Field manifest",
+      "integration_status": "governance-candidate",
+      "interfaces": [
+        "capsule contract",
+        "field/UNIFIED-MANIFEST.json",
+        "gateway-facing dashboard"
+      ],
+      "health_evidence": "Repository and manifest inspected; this registry change does not independently verify live runtime services.",
+      "next": [
+        "validate capsule contract in CI",
+        "define versioned adapter contract",
+        "add end-to-end integration test"
+      ]
+    },
+    {
+      "id": "heavenzfire-sovereign-node",
+      "kind": "repository",
+      "canonical_url": "https://github.com/HeavenzFire/HeavenzFire-Sovereign-Node",
+      "role": "Sovereign Node application repository",
+      "integration_status": "discovered-not-connected",
+      "interfaces": [
+        "React/TypeScript application source"
+      ],
+      "health_evidence": "Public repository metadata and default-branch file listing inspected; live connection to the Unified Field not verified.",
+      "next": [
+        "inspect application service boundaries",
+        "implement least-privilege gateway adapter",
+        "add contract and health checks"
+      ]
+    },
+    {
+      "id": "sovereign-node-legacy-pr",
+      "kind": "repository-reference",
+      "canonical_url": "https://github.com/HeavenzFire/Sovereign-Node-/pull/9",
+      "role": "Repository reference associated with resilience PR #9",
+      "integration_status": "identity-unresolved",
+      "interfaces": [],
+      "health_evidence": "PR #9 exists and is open as a draft; canonical repository identity has not been reconciled with HeavenzFire-Sovereign-Node.",
+      "next": [
+        "resolve repository identity and lineage before merging or wiring adapters"
+      ]
+    }
+  ]
+}
