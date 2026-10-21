@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unified Field — Dashboard</title>
+<style>
+  :root { color-scheme: dark; }
+  body { font-family: system-ui, sans-serif; background: #101418; color: #dfe6ee;
+         margin: 0; padding: 16px; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #8fa3b8; font-size: 13px; margin-bottom: 16px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+          gap: 12px; }
+  .card { background: #171d24; border: 1px solid #26303c; border-radius: 10px;
+          padding: 14px; }
+  .card h2 { font-size: 14px; margin: 0 0 10px; color: #aebfd2;
+             text-transform: uppercase; letter-spacing: .06em; }
+  .row { display: flex; justify-content: space-between; padding: 3px 0;
+         font-size: 14px; }
+  .ok { color: #57d977; } .down { color: #ff6b5e; } .dim { color: #8fa3b8; }
+  .err { color: #ffb35e; font-size: 13px; white-space: pre-wrap; }
+  input, button { background: #0d1116; color: #dfe6ee; border: 1px solid #33404e;
+                  border-radius: 6px; padding: 7px 9px; font-size: 14px; }
+  button { cursor: pointer; }
+  #bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  #bar input.gw { width: 230px; } #bar input.key { width: 300px; }
+</style>
+</head>
+<body>
+<h1>Unified Field</h1>
+<div class="sub">One surface, speaking through the gateway. What answers is shown alive; what doesn't is named down. Nothing here is cached optimism — every panel is a live call.</div>
+
+<div id="bar">
+  <input class="gw" id="gw" value="http://127.0.0.1:18080" title="Gateway base URL">
+  <input class="key" id="key" type="password" placeholder="Gateway key (sgw-…)" title="Kept in this tab's session only">
+  <button id="connect">Connect</button>
+  <span class="dim" id="stamp">not connected</span>
+</div>
+
+<div class="grid">
+  <div class="card"><h2>Field services</h2><div id="services"><span class="dim">—</span></div></div>
+  <div class="card"><h2>Capsule — the mind in the field</h2><div id="capsule"><span class="dim">—</span></div></div>
+  <div class="card"><h2>Brain</h2><div id="brain"><span class="dim">—</span></div></div>
+  <div class="card"><h2>Gateway</h2><div id="gateway"><span class="dim">—</span></div></div>
+</div>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+let timer = null;
+
+function esc(s) { return String(s).replace(/[&<>"]/g, c =>
+  ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+async function call(path, method, body) {
+  const gw = $("gw").value.replace(/\/$/, "");
+  const key = $("key").value.trim();
+  const r = await fetch(gw + path, {
+    method: method || "GET",
+    headers: { "X-Gateway-Key": key, "Content-Type": "application/json" },
+    body: body ? JSON.stringify(body) : undefined
+  });
+  const d = await r.json().catch(() => ({ ok: false, error: "unparseable response" }));
+  if (!r.ok && d.ok === undefined) d.ok = false;
+  return d;
+}
+
+function row(k, v, cls) {
+  return `<div class="row"><span>${esc(k)}</span><span class="${cls || ""}">${esc(v)}</span></div>`;
+}
+
+async function refresh() {
+  const stamp = new Date().toLocaleTimeString();
+  // field.status: one truthful report of every service
+  try {
+    const d = await call("/brain/task", "POST", { capability: "field.status", args: {} });
+    if (d.ok && d.services) {
+      $("services").innerHTML =
+        Object.entries(d.services).map(([name, s]) =>
+          row(name, s.alive ? "ALIVE" : "DOWN — " + (s.detail || ""), s.alive ? "ok" : "down")
+        ).join("") + row("alive", d.alive_count + " / " + Object.keys(d.services).length);
+    } else {
+      $("services").innerHTML = `<div class="err">field.status failed: ${esc(d.error || JSON.stringify(d))}</div>`;
+    }
+  } catch (e) { $("services").innerHTML = `<div class="err">gateway unreachable: ${esc(e.message)}</div>`; }
+
+  // the capsule, as the field itself loads it
+  try {
+    const c = await call("/brain/task", "POST", { capability: "capsule.load", args: {} });
+    if (c.ok && c.version) {
+      $("capsule").innerHTML =
+        row("version", c.version) + row("mode", c.mode) +
+        row("memories", c.memory_count) +
+        row("standing orders", (c.standing_orders || []).length) +
+        row("boundaries", (c.boundaries || []).length) +
+        (c.note ? `<div class="dim" style="margin-top:6px">${esc(c.note)}</div>` : "");
+    } else if (c.ok) {
+      $("capsule").innerHTML = `<div class="err">capsule not instantiated (${esc(c.note || "no capsule file")})</div>`;
+    } else {
+      $("capsule").innerHTML = `<div class="err">capsule.load failed: ${esc(c.error || "")}</div>`;
+    }
+  } catch (e) { $("capsule").innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+
+  // brain status direct
+  try {
+    const b = await call("/brain/status");
+    if (b.ok) {
+      $("brain").innerHTML =
+        row("mode", b.mode) + row("model", b.model) +
+        Object.entries(b.workers || {}).map(([w, s]) =>
+          row("worker " + w, s, s === "healthy" ? "ok" : "down")).join("") +
+        row("audit entries", b.audit_entries) +
+        row("audit head", (b.audit_head || "").slice(0, 16) + "…");
+    } else {
+      $("brain").innerHTML = `<div class="err">brain status failed: ${esc(b.error || "")}</div>`;
+    }
+  } catch (e) { $("brain").innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+
+  // gateway status + audit chain
+  try {
+    const g = await call("/status");
+    if (g.ok) {
+      $("gateway").innerHTML =
+        row("uptime", g.uptime_s + "s") + row("your scope", g.client_scope) +
+        row("audit ok", g.audit.ok ? "yes" : "NO", g.audit.ok ? "ok" : "down") +
+        row("audit entries", g.audit.entries) + row("audit head", g.audit.head + "…") +
+        Object.entries(g.subsystems || {}).map(([k, v]) => row(k, v)).join("");
+    } else {
+      $("gateway").innerHTML = `<div class="err">gateway status failed: ${esc(g.error || "")}</div>`;
+    }
+  } catch (e) { $("gateway").innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+
+  $("stamp").textContent = "updated " + stamp + " — refreshes every 15s";
+}
+
+$("connect").addEventListener("click", () => {
+  sessionStorage.setItem("uf_gw", $("gw").value);
+  sessionStorage.setItem("uf_key", $("key").value);
+  if (timer) clearInterval(timer);
+  refresh();
+  timer = setInterval(refresh, 15000);
+});
+
+// restore this tab's session (key never leaves sessionStorage)
+$("gw").value = sessionStorage.getItem("uf_gw") || $("gw").value;
+$("key").value = sessionStorage.getItem("uf_key") || "";
+if ($("key").value) $("connect").click();
+</script>
+</body>
+</html>

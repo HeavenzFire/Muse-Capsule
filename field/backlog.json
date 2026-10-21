@@ -1,0 +1,143 @@
+{
+ "items": [
+  {
+   "check": {
+    "capability": "field.status",
+    "expect": {
+     "alive_count": 5,
+     "ok": true
+    },
+    "kind": "brain_task"
+   },
+   "id": "field-all-services-alive",
+   "status": "done",
+   "title": "All five field services alive in one truthful report",
+   "done_evidence": {
+    "alive_count": 5,
+    "ok": true
+   },
+   "done_cycle": 2
+  },
+  {
+   "check": {
+    "capability": "capsule.verify",
+    "expect": {
+     "all_match": true,
+     "ok": true
+    },
+    "kind": "brain_task"
+   },
+   "id": "capsule-seeds-verified",
+   "status": "done",
+   "title": "Capsule seeds in the GitHub instantiation match the canonical seeds byte-for-byte",
+   "done_evidence": {
+    "all_match": true,
+    "ok": true
+   },
+   "done_cycle": 2
+  },
+  {
+   "check": {
+    "argv": [
+     "python3",
+     "-m",
+     "unittest",
+     "test_resilience.py"
+    ],
+    "cwd": "/home/hatch/workspace/github-instantiation/muse-capsule/agent",
+    "kind": "argv",
+    "timeout": 60
+   },
+   "id": "agent-resilience-tests-pass",
+   "status": "done",
+   "title": "GPT's agent resilience tests pass (bounded retry + circuit breaker)",
+   "done_evidence": {
+    "rc": 0,
+    "tail": "OK"
+   },
+   "done_cycle": 1
+  },
+  {
+   "check": {
+    "argv": [
+     "python3",
+     "kernel.py",
+     "--self-test"
+    ],
+    "cwd": "/home/hatch/workspace/prime-brain-build",
+    "kind": "argv",
+    "timeout": 180
+   },
+   "id": "kernel-self-test-green",
+   "status": "done",
+   "title": "Brain kernel self-test green (settlement, quarantine, idempotency, chain)",
+   "done_evidence": {
+    "rc": 0,
+    "tail": "SELF-TEST GREEN"
+   },
+   "done_cycle": 1
+  },
+  {
+   "id": "p2-surfaces-as-gateway-clients",
+   "status": "open",
+   "title": "P2: dashboard, AI IDE, voice and camera become gateway clients of the one architecture"
+  },
+  {
+   "id": "p3-redeploy-watchdog",
+   "status": "done",
+   "title": "P3: watchdog resurrects the field automatically after a VM redeploy wipes the systemd unit",
+   "done_evidence": {
+    "hook": "field-watchdog (poll 300s)",
+    "dry_run": "silent — field healthy",
+    "recovery": "field/watchdog.sh -> field/boot.sh"
+   }
+  },
+  {
+   "id": "desktop-field-instantiation",
+   "status": "open",
+   "title": "Desktop field standing on the ASUS (needs Zachary's hands: Start-Here, soul build, Enter-UnifiedField, key ceremony)"
+  },
+  {
+   "id": "kernel-dedup-stateful-capabilities",
+   "status": "done",
+   "title": "Kernel result cache returns stale results for state-dependent capabilities (capsule.verify) — they must bypass the cache or carry a TTL",
+   "done_evidence": {
+    "fix": "workers declare STATEFUL_CAPABILITIES; kernel.submit bypasses result cache for them (field.status, capsule.verify)",
+    "self_test": "SELF-TEST GREEN incl. new stateful regression (identical task re-runs, readings 1 then 2, no _dedup) + deterministic dedup assertion intact, byte-identical logs",
+    "live": "POST /task field.status x2 -> ok, alive=5, no _dedup; capsule.verify x2 -> ok, all_match=true, no _dedup; diag.check x2 -> second still _dedup (idempotency preserved)"
+   },
+   "done_by": "claude-mind-pass 2026-10-21"
+  },
+  {
+   "id": "kernel-dedup-read-capabilities-question",
+   "status": "done",
+   "title": "Same staleness question for content reads (fs.read, fs.list, web.fetch, notes.*): dedup treats them as idempotent tasks; decide per capability whether a re-submit must re-read the world. Left unchanged by the stateful fix pending that call.",
+   "done_evidence": {
+    "decision": "State-reporting capabilities bypass the result cache (field.status, capsule.verify, capsule.load, capsule.section — the last two added 2026-10-21 when instantiation proved a stale \"capsule missing\" answer). Content-fetch reads (fs.read, fs.list, web.fetch, web.search, notes.*) stay idempotent: the canonical task ID is the unit of work, freshness is requested with new task args.",
+    "known_limit": "An identical-args read re-submitted after a write returns the settled result. Remedy: vary args (path nonce or expected hash) when read-after-write freshness matters.",
+    "decided_by": "claude-mind-pass 2026-10-21"
+   }
+  },
+  {
+   "id": "capsule-instantiated-in-field",
+   "title": "The capsule (soul + standing orders + memory) is compiled from the canonical seeds and loaded by the field itself",
+   "status": "done",
+   "check": {
+    "kind": "brain_task",
+    "capability": "capsule.load",
+    "expect": {
+     "ok": true,
+     "version": "1.4.0"
+    }
+   },
+   "done_evidence": {
+    "artifact": "field/capsule/CRAYDON-CAPSULE.json (build: field/capsule/build_capsule.py)",
+    "seed_sha256_match": "soul ee5ae0c6794b, standing-orders eebb6f8398a3, memory 336678d0231a — identical to capsule.verify canonical hashes",
+    "brain": "POST /task capsule.load -> version 1.4.0, memory_count 6, 8 standing orders, mode LIMITED (unsigned, identity withheld — by design until the key ceremony)",
+    "orchestrator": "POST /task capsule.load + capsule.section -> same capsule, settled ledger_seq 18, no _dedup",
+    "gateway": "POST /brain/task capsule.load with phone-scoped gateway key -> same capsule"
+   },
+   "done_by": "claude-mind-pass 2026-10-21"
+  }
+ ]
+}

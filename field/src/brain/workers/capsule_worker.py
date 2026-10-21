@@ -8,7 +8,17 @@ import os
 
 CAPABILITIES = ["capsule.load", "capsule.section", "capsule.append"]
 
-CAPSULE_PATH = os.path.join(os.path.dirname(__file__), "..", "CRAYDON-CAPSULE.json")
+# load/section read state the system itself can change (capsule.append
+# mutates the capsule), so a cached answer can report a capsule that no
+# longer exists. They bypass the kernel result cache; append stays
+# deduped — an identical re-submit is the same task, applied once.
+STATEFUL_CAPABILITIES = ["capsule.load", "capsule.section"]
+
+# The field instantiates its capsule in the field tree and points the
+# brain at it with HF_CAPSULE_PATH; the default (capsule beside the
+# brain) is unchanged for the desktop drop-in.
+CAPSULE_PATH = os.environ.get("HF_CAPSULE_PATH") or os.path.join(
+    os.path.dirname(__file__), "..", "CRAYDON-CAPSULE.json")
 
 REQUIRED_TOP_KEYS = {"version", "identity", "user", "boundaries",
                      "standing_orders", "memory", "projects"}

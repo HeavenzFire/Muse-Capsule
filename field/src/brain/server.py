@@ -172,7 +172,11 @@ class Handler(BaseHTTPRequestHandler):
             if not cap:
                 self._json(400, {"ok": False, "error": "capability required"})
                 return
-            task = {"capability": cap, "args": data.get("args", {}) or {}}
+            # Canonical contract: {"capability", "args"}. "payload" is
+            # accepted as an alias so a client built against the wrong
+            # key never loses its arguments silently; "args" wins.
+            task = {"capability": cap,
+                    "args": data.get("args", data.get("payload", {})) or {}}
             timeout = min(int(data.get("timeout", 60) or 60), 300)
             res = kernel.submit(task, timeout=timeout)
             from kernel import make_task_id

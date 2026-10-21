@@ -109,10 +109,36 @@ class Handler(BaseHTTPRequestHandler):
         body = json.dumps(obj).encode("utf-8")
         self.send_response(code)
         self.send_header("Content-Type", "application/json")
+        self._cors_headers()
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
         return body
+
+    # -- CORS (P2: surfaces are browser clients) -------------------------
+    # Surfaces (dashboard, IDE, voice, camera pages) run in browsers and
+    # reach the field only through this gateway. CORS is not the
+    # security boundary — the X-Gateway-Key is, and it is still required
+    # on every real request. Only loopback origins and file:// pages
+    # (Origin "null") are reflected; anything else gets no CORS header
+    # and the browser blocks the read.
+    def _cors_origin(self):
+        origin = self.headers.get("Origin", "")
+        if origin == "null":
+            return "null"
+        if origin.startswith("http://"):
+            host = origin[len("http://"):].split("/", 1)[0]
+            name, _, port = host.partition(":")
+            if name in ("127.0.0.1", "localhost") and \
+                    (not port or port.isdigit()):
+                return origin
+        return None
+
+    def _cors_headers(self):
+        origin = self._cors_origin()
+        if origin:
+            self.send_header("Access-Control-Allow-Origin", origin)
+            self.send_header("Vary", "Origin")
 
     def _auth(self):
         raw = self.headers.get("X-Gateway-Key", "")
@@ -230,6 +256,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_response(st)
         for k, v in rh.items():
             self.send_header(k, v)
+        self._cors_headers()
         self.send_header("Content-Length", str(len(data)))
         self.end_headers()
         self.wfile.write(data)
@@ -316,6 +343,7 @@ class Handler(BaseHTTPRequestHandler):
                 data.get("headers", {}), capability=cap)
             self.send_response(st)
             self.send_header("Content-Type", "application/json")
+            self._cors_headers()
             self.send_header("Content-Length", str(len(rbody)))
             self.end_headers()
             self.wfile.write(rbody)
@@ -388,6 +416,22 @@ class Handler(BaseHTTPRequestHandler):
                          scope=scope, req_body=body, res_body=res)
 
     # -- HTTP verbs --------------------------------------------------------
+    def do_OPTIONS(self):
+        # Browser preflight. Carries no authority: no key is sent on a
+        # preflight and none is honored; the real request still auths.
+        self.send_response(204)
+        origin = self._cors_origin()
+        if origin:
+            self.send_header("Access-Control-Allow-Origin", origin)
+            self.send_header("Access-Control-Allow-Methods",
+                             "GET, POST, PUT, DELETE, OPTIONS")
+            self.send_header("Access-Control-Allow-Headers",
+                             "X-Gateway-Key, Content-Type")
+            self.send_header("Access-Control-Max-Age", "600")
+            self.send_header("Vary", "Origin")
+        self.send_header("Content-Length", "0")
+        self.end_headers()
+
     def do_GET(self):
         self._handle(self._body())
 

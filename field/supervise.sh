@@ -16,9 +16,10 @@ run_forever() { # name workdir cmd...
   done
 }
 
-run_forever brain       /home/hatch/workspace/prime-brain-build  python3 server.py &
+run_forever brain       /home/hatch/workspace/prime-brain-build  env HF_CAPSULE_PATH=/home/hatch/workspace/field/capsule/CRAYDON-CAPSULE.json python3 server.py &
 run_forever node        /home/hatch/workspace/asus-node/bin      python3 node.py &
-run_forever orchestrator /home/hatch/workspace/field             python3 orchestrator_server.py &
+run_forever orchestrator /home/hatch/workspace/field             env HF_CAPSULE_PATH=/home/hatch/workspace/field/capsule/CRAYDON-CAPSULE.json python3 orchestrator_server.py &
 run_forever gateway     /home/hatch/workspace/sovereign-gateway python3 -m gateway.gateway &
+run_forever rd_loop     /home/hatch/workspace/field             python3 rd_loop.py &
 
 wait

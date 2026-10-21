@@ -31,7 +31,8 @@ memory = Memory()
 
 # register workers
 from workers import shell_worker, fs_worker, browse_worker, web_worker, \
-    notes_worker, diagnostics_worker, capsule_worker  # noqa: E402
+    notes_worker, diagnostics_worker, capsule_worker, \
+    field_worker, verify_worker  # noqa: E402
 
 kernel.register("shell", shell_worker)
 kernel.register("fs", fs_worker)
@@ -40,6 +41,12 @@ kernel.register("web", web_worker)
 kernel.register("notes", notes_worker)
 kernel.register("diagnostics", diagnostics_worker)
 kernel.register("capsule", capsule_worker)
+kernel.register("field", field_worker)
+kernel.register("verify", verify_worker)
+
+# Resume anything a previous crash interrupted (safe capabilities
+# replay; side-effecting ones are deferred in the log, never replayed).
+kernel.recover()
 
 _capsule_cache = {}
 
@@ -165,7 +172,11 @@ class Handler(BaseHTTPRequestHandler):
             if not cap:
                 self._json(400, {"ok": False, "error": "capability required"})
                 return
-            task = {"capability": cap, "args": data.get("args", {}) or {}}
+            # Canonical contract: {"capability", "args"}. "payload" is
+            # accepted as an alias so a client built against the wrong
+            # key never loses its arguments silently; "args" wins.
+            task = {"capability": cap,
+                    "args": data.get("args", data.get("payload", {})) or {}}
             timeout = min(int(data.get("timeout", 60) or 60), 300)
             res = kernel.submit(task, timeout=timeout)
             from kernel import make_task_id
