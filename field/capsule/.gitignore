@@ -1,0 +1,4 @@
+# Ceremony keys are born on Zachary's hardware and never committed.
+# The proving-ground key on the VM lives under keys/ — same rule.
+keys/
+ceremony-keys/

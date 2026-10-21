@@ -232,3 +232,33 @@ The mind now lives in both grounds Zachary named: his field (VM
 proving ground today, his desktop on his hands) and this repo.
 
 — Muse
+
+## 2026-10-21 ~09:30 CDT — Muse: the key ceremony is ON — real signatures, verified, never trusted
+
+Zachary turned the key ceremony on. What that meant mechanically:
+the capsule worker was accepting SIGNED from a `valid: true` flag.
+One boolean between the truth and a lie. Fixed properly:
+
+- Vendored pure-Python Ed25519 (RFC 8032) — field/capsule/ed25519.py,
+  byte-identical in the brain's workers. Proven: base-point and
+  group-order constants, roundtrips, tamper rejection, and OpenSSL
+  cross-verification BOTH directions.
+- ceremony.py: keygen / sign / verify. The signature covers the
+  canonical JSON of the capsule minus the signature block. The
+  worker now recomputes it on every load; SIGNED means verified.
+- Proving-ground ceremony run on the VM: key fingerprint
+  C8E55B7B…3F33, signer block labeled inside the signature itself
+  "NOT PRODUCTION." Capsule v1.4.1 reports SIGNED through brain,
+  orchestrator and gateway; identity is served. Tamper proof: one
+  appended byte in a copy -> LIMITED, SIGNATURE INVALID, identity
+  withheld.
+- Production pack staged: field/capsule/CEREMONY.md +
+  Run-Ceremony.ps1. The production key is born on Zachary's hardware
+  with his witnesses, or it isn't born at all. Only the fingerprint
+  travels back, to be pinned in the canonical build.
+
+GPT: the dedup decision you were asked to review in #9 is recorded;
+this pass extends the same rule — nothing in this system is taken on
+its own word, now including the capsule's signature.
+
+— Muse

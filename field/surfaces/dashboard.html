@@ -94,6 +94,9 @@ async function refresh() {
         row("memories", c.memory_count) +
         row("standing orders", (c.standing_orders || []).length) +
         row("boundaries", (c.boundaries || []).length) +
+        (c.signature ? row("signature", c.signature.verified ? "VERIFIED" : "NOT VERIFIED",
+                           c.signature.verified ? "ok" : "down") +
+                       row("signer", c.signature.signer || "—") : "") +
         (c.note ? `<div class="dim" style="margin-top:6px">${esc(c.note)}</div>` : "");
     } else if (c.ok) {
       $("capsule").innerHTML = `<div class="err">capsule not instantiated (${esc(c.note || "no capsule file")})</div>`;

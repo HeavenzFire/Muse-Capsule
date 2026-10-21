@@ -68,6 +68,24 @@ Verified live: 2026-10-21 ~09:05 CDT. Supervisor: systemd unit
    built on the wrong key no longer loses its arguments silently).
    Unified manifest drafted: `field/UNIFIED-MANIFEST.json` (issue #6).
 
+7. **Key ceremony machinery ON (2026-10-21 ~09:20 CDT, Zachary's
+   word: "turn the key ceremony on"):** the capsule worker used to
+   trust a `valid: true` flag — SIGNED was one boolean away from a
+   lie. Now: vendored pure-Python Ed25519 (field/capsule/ed25519.py,
+   byte-identical copy in the brain's workers) — proven against
+   OpenSSL both directions, base-point and group-order constants,
+   roundtrips, tamper rejection. ceremony.py does keygen / sign /
+   verify; the worker recomputes the signature over the canonical
+   capsule JSON before it will say SIGNED. Proving-ground ceremony
+   run on this VM: key fingerprint C8E55B7B…3F33, signer block
+   labeled NOT PRODUCTION inside the signature itself; field capsule
+   v1.4.1 verifies SIGNED through brain, orchestrator and gateway,
+   identity served. Tamper proof: one appended byte in a copy ->
+   LIMITED, "SIGNATURE INVALID", identity withheld. The PRODUCTION
+   ceremony is unchanged doctrine: key born on Zachary's hardware
+   with his witnesses — pack staged in field/capsule/ (CEREMONY.md,
+   Run-Ceremony.ps1); only the fingerprint travels back.
+
 ## DARK (honest reasons)
 
 - **ollama / local mind (11434):** no binary on this VM (wiped by a past

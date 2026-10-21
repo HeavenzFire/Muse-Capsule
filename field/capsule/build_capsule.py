@@ -27,7 +27,7 @@ DEFAULT_SEED_DIR = os.path.expanduser(
 DEFAULT_OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                            "CRAYDON-CAPSULE.json")
 
-VERSION = "1.4.0"
+VERSION = "1.4.1"
 
 
 def sha256_file(path):
@@ -124,10 +124,20 @@ def main():
                        "number; window closes ~Oct 29-30, 2026."},
         ],
         "signature": {
+            "alg": "Ed25519",
             "valid": False,
-            "note": "Unsigned proving-ground copy. Production signing "
-                    "happens at the key ceremony on Zachary's hardware, "
-                    "never on this VM.",
+            "status": "UNSIGNED — awaiting the key ceremony",
+            "signer": None,
+            "signed_at": None,
+            "signer_public_key_hex": None,
+            "signer_pubkey_fp_sha256": None,
+            "value_b64": None,
+            "note": "Signing happens only at the key ceremony, with a "
+                    "key born on Zachary's hardware (production) or a "
+                    "clearly labeled proving-ground key (VM tests). "
+                    "ceremony.py sign fills this block; verifiers "
+                    "recompute the signature over the canonical JSON "
+                    "of everything outside this block.",
         },
         "provenance": {
             "compiled_at": datetime.datetime.now(

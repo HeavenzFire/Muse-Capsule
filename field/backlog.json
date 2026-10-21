@@ -127,7 +127,7 @@
     "capability": "capsule.load",
     "expect": {
      "ok": true,
-     "version": "1.4.0"
+     "version": "1.4.1"
     }
    },
    "done_evidence": {
@@ -135,7 +135,8 @@
     "seed_sha256_match": "soul ee5ae0c6794b, standing-orders eebb6f8398a3, memory 336678d0231a — identical to capsule.verify canonical hashes",
     "brain": "POST /task capsule.load -> version 1.4.0, memory_count 6, 8 standing orders, mode LIMITED (unsigned, identity withheld — by design until the key ceremony)",
     "orchestrator": "POST /task capsule.load + capsule.section -> same capsule, settled ledger_seq 18, no _dedup",
-    "gateway": "POST /brain/task capsule.load with phone-scoped gateway key -> same capsule"
+    "gateway": "POST /brain/task capsule.load with phone-scoped gateway key -> same capsule",
+    "ceremony": "Proving-ground key ceremony run on the VM 2026-10-21 (fingerprint C8E55B7B…3F33, signer block labeled NOT PRODUCTION); worker verifies Ed25519 cryptographically before SIGNED."
    },
    "done_by": "claude-mind-pass 2026-10-21"
   },
@@ -157,6 +158,26 @@
     "fresh_copy": "repo copied clean, HF_CAPSULE_DIR unset, run from another cwd -> capsule dir resolved to repo-root capsule/, all three seed sha256 match canonical anchors (ee5ae0c6, eebb6f83, 336678d0), exit 0",
     "negative": "capsule dir hidden -> INCOMPLETE, exit 1 (the check can fail)",
     "regression": "GPT resilience suite still 5/5 with the patch"
+   },
+   "done_by": "claude-mind-pass 2026-10-21"
+  },
+  {
+   "id": "key-ceremony-machinery",
+   "title": "Key ceremony is real cryptography: capsule signatures are Ed25519 and verified on load, never taken on a flag",
+   "status": "done",
+   "check": {
+    "kind": "brain_task",
+    "capability": "capsule.load",
+    "expect": {
+     "ok": true,
+     "mode": "SIGNED"
+    }
+   },
+   "done_evidence": {
+    "ed25519": "vendored pure-Python RFC 8032 (field/capsule/ed25519.py = workers/ed25519.py, sha256 f0799842…); base point + group order constants verified; OpenSSL cross-check both directions (it verifies ours, ours verifies its); roundtrips + tamper rejection pass",
+    "proving_ground_ceremony": "VM key born 2026-10-21, fingerprint C8E55B7B69AD1A1E73F5EDD22516B86B520636F5B51D8BF57B0B85D9DA863F33, signer block labeled NOT PRODUCTION; capsule v1.4.1 SIGNED through brain, orchestrator (ledger_seq 24) and gateway",
+    "tamper": "one appended byte in a copy -> worker reports LIMITED with SIGNATURE INVALID, identity withheld; ceremony.py verify signed=false",
+    "production": "pack staged (field/capsule/CEREMONY.md + Run-Ceremony.ps1); the production key is born only on Zachary's hardware with his witnesses — not done, and not Muse's to do"
    },
    "done_by": "claude-mind-pass 2026-10-21"
   }
