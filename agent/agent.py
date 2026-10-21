@@ -29,6 +29,11 @@ import urllib.request
 import urllib.error
 import datetime
 
+try:
+    from resilience import CircuitBreaker, CircuitOpenError, RetryPolicy, call_with_retry
+except ImportError:  # package-style import compatibility
+    from .resilience import CircuitBreaker, CircuitOpenError, RetryPolicy, call_with_retry
+
 # ---------------------------------------------------------------- config
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -590,6 +595,12 @@ class Agent:
         self.approver = approver or console_approver
         self.chat_fn = chat_fn or (lambda msgs: ollama_chat(
             msgs, model=self.model))
+        # Additive resilience: only dependency inference is retried automatically.
+        # Tool actions may have side effects and are never blindly replayed.
+        self.chat_retry_policy = RetryPolicy(max_attempts=3, base_delay=0.5,
+                                             max_delay=2.0, jitter=0.0)
+        self.chat_breaker = CircuitBreaker(failure_threshold=3,
+                                           recovery_timeout=15.0)
         soul = load_capsule()
         self.system = AGENT_SYSTEM.format(
             soul="(no capsule found — running on the soul prompt only)"
@@ -621,8 +632,13 @@ class Agent:
         for rnd in range(1, self.max_rounds + 1):
             print("\n--- round %d/%d ---" % (rnd, self.max_rounds))
             try:
-                reply = self.chat_fn(messages)
-            except OllamaError as e:
+                reply = call_with_retry(
+                    lambda: self.chat_fn(messages),
+                    policy=self.chat_retry_policy,
+                    breaker=self.chat_breaker,
+                    retry_on=(OllamaError, TimeoutError, ConnectionError),
+                )
+            except (OllamaError, CircuitOpenError, TimeoutError, ConnectionError) as e:
                 print("OLLAMA ERROR: %s" % e)
                 self._audit("task_stopped", reason="ollama_error",
                             secret_fields=("error",), error=str(e))

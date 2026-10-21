@@ -1,0 +1,19 @@
+name: Muse fault-tolerance tests
+on:
+  push:
+    branches: [main, feature/additive-fault-tolerance]
+  pull_request:
+  workflow_dispatch:
+jobs:
+  python-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile runtime and resilience module
+        run: python -m py_compile agent/agent.py agent/resilience.py agent/test_resilience.py
+      - name: Run fault-tolerance unit tests
+        working-directory: agent
+        run: python -m unittest -v test_resilience.py
