@@ -1,0 +1,35 @@
+name: Agent governance checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: agent-governance-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  policy-and-agent-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Validate agent policy structure
+        run: python scripts/ci/check_agent_policy.py
+      - name: Compile agent runtime and tests
+        run: python -m py_compile agent/agent.py agent/resilience.py agent/test_resilience.py
+      - name: Run resilience unit tests
+        working-directory: agent
+        run: python -m unittest -v test_resilience.py
