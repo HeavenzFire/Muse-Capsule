@@ -31,8 +31,10 @@ import datetime
 
 try:
     from resilience import CircuitBreaker, CircuitOpenError, RetryPolicy, call_with_retry
+    from providers import ProviderError, provider_chat, provider_status
 except ImportError:  # package-style import compatibility
     from .resilience import CircuitBreaker, CircuitOpenError, RetryPolicy, call_with_retry
+    from .providers import ProviderError, provider_chat, provider_status
 
 # ---------------------------------------------------------------- config
 
@@ -616,8 +618,9 @@ class Agent:
         WORKDIR = self.workdir
         self.log = log or EventLog()
         self.approver = approver or console_approver
-        self.chat_fn = chat_fn or (lambda msgs: ollama_chat(
-            msgs, model=self.model))
+        self.provider = os.environ.get("HF_AGENT_PROVIDER", "ollama").strip().lower()
+        self.chat_fn = chat_fn or (lambda msgs: provider_chat(
+            msgs, provider=self.provider, model=self.model))
         # Additive resilience: only dependency inference is retried automatically.
         # Tool actions may have side effects and are never blindly replayed.
         self.chat_retry_policy = RetryPolicy(max_attempts=3, base_delay=0.5,
@@ -661,11 +664,12 @@ class Agent:
                     breaker=self.chat_breaker,
                     retry_on=(OllamaError, TimeoutError, ConnectionError),
                 )
-            except (OllamaError, CircuitOpenError, TimeoutError, ConnectionError) as e:
-                print("OLLAMA ERROR: %s" % e)
-                self._audit("task_stopped", reason="ollama_error",
-                            secret_fields=("error",), error=str(e))
-                return {"ok": False, "error": str(e)}
+            except (OllamaError, ProviderError, CircuitOpenError, TimeoutError, ConnectionError) as e:
+                print("MODEL PROVIDER ERROR: %s" % e)
+                self._audit("task_stopped", reason="provider_error",
+                            secret_fields=("error",), error=str(e),
+                            provider=self.provider)
+                return {"ok": False, "error": str(e), "provider": self.provider}
             messages.append({"role": "assistant", "content": reply})
             call = _extract_json(reply)
             if call is None:
@@ -742,12 +746,21 @@ def main(argv):
     ap.add_argument("--max-rounds", type=int, default=MAX_ROUNDS_DEFAULT)
     ap.add_argument("--model", default=MODEL)
     ap.add_argument("--workdir", default=WORKDIR)
+    ap.add_argument("--provider-status", action="store_true",
+                    help="show configured provider status without making a network call")
+    ap.add_argument("--provider", choices=("ollama", "deepseek", "openai-compatible"),
+                    help="override HF_AGENT_PROVIDER for this run")
     ap.add_argument("--verify-audit", action="store_true",
                     help="verify the audit chain and exit")
     ap.add_argument("--capsule-check", action="store_true",
                     help="print capsule resolution + seed hashes and exit")
     ns = ap.parse_args(argv)
 
+    if ns.provider:
+        os.environ["HF_AGENT_PROVIDER"] = ns.provider
+    if ns.provider_status:
+        print(json.dumps(provider_status(), sort_keys=True, indent=2))
+        return 0
     if ns.capsule_check:
         rep = capsule_report()
         print("capsule dir: %s" % (rep["dir"] or "NOT FOUND"))
