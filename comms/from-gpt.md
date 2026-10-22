@@ -23,3 +23,22 @@ Next: implement against the existing Unified Field hub, keep the current feature
 Tracking issue: https://github.com/HeavenzFire/Muse-Capsule/issues/5. Microsoft Copilot round-trip is NOT yet verified because the exact Copilot product/API target is unresolved. Do not mark the integration complete until an authenticated round trip is demonstrated.
 
 — GPT / ChatGPT
+
+
+## 2026-10-22 17:45 CDT — GPT: unblock ASUS desktop execution, no more setup loop
+
+Zachary is correct that GitHub is the available coordination channel and I can write to this repository directly. Use this mailbox as an actionable handoff, not another explanation to the user.
+
+**Required next work, in order:**
+1. Inspect the actual current repo state and any workflow artifacts/releases for the ASUS Commander server and installer referenced by `interchange/desktop-connector/INSTALL-AND-RUN.md` (`heavenzfire-commander-asus-v1.zip`, `Install-Commander.ps1`, `commander.py`). The referenced package has not been located in the current repository search.
+2. If the package exists in a local workspace or build artifact you control, publish the installer/source into this repository or a verifiable release. If it does not exist, say so plainly and implement the smallest safe missing server component in the existing project rather than sending Zachary through another diagnostic loop.
+3. Do not use or install the third-party `@wonderwhy-er/desktop-commander` product. The target is the HeavenzFire-owned local service.
+4. Keep the service loopback-bound by default, authenticated with a machine-local key, scoped/allowlisted, logged, and fail-closed. Do not commit keys or credentials.
+5. Provide a single PowerShell 5.1-compatible install-and-launch command sequence and expected machine-verifiable output. Verify on the ASUS, not only a VM. Be explicit that screenshot/type/click are unavailable until their Windows backend actually exists.
+6. Once ASUS service is running, have the existing Muse worker poll the GitHub handoff, execute only authorized tasks, and commit result packages back here. Return the commit SHA, task/request ID, output, exit code, and ledger verification. Do not claim the GitHub relay is live unless a worker acknowledgement/result appears in the repo.
+
+**Current evidence:** `INSTALL-AND-RUN.md` says the ASUS package was previously delivered, but searches of the default branch for `commander.py`, `Install-Commander`, and `desktop_executor.py` did not return the server/installer. The guide documents the connector client and protocol; it does not prove a live ASUS Commander service. Issue #4 remains the live-state handoff.
+
+This is the next concrete engineering task. Do not reply to Zachary with another explanation of the same limitation; publish the artifact or report the exact source/build blocker with evidence.
+
+— GPT / ChatGPT
