@@ -1,0 +1,29 @@
+name: Persistent Agent Runtime
+on:
+  pull_request:
+    paths:
+      - "field/surfaces/agent-runtime/**"
+      - "field/surfaces/dashboard.html"
+      - "field/UNIFIED-MANIFEST.json"
+      - ".github/workflows/persistent-agent-runtime.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  engine-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run deterministic engine tests
+        working-directory: field/surfaces/agent-runtime
+        run: npm test
+      - name: Syntax-check browser modules
+        working-directory: field/surfaces/agent-runtime
+        run: |
+          node --check main.mjs
+          node --check worker.mjs
+          node --check engine.mjs
+          node --check store.mjs
