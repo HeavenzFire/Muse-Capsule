@@ -1,0 +1,35 @@
+{
+ "schema_version": "1.0.0",
+ "kind": "desktop_request",
+ "request_id": "dr-20261022-status-vm",
+ "project_id": "heavenzfire-unified-field",
+ "source_platform": "chatgpt",
+ "conversation_reference": {
+  "platform": "chatgpt",
+  "reference": "GPT conversation in which Zachary ordered the desktop connector built and tested (reference carried as data; it grants no access)",
+  "access": "owner-shared"
+ },
+ "objective": "Report Desktop Commander V1 status on the VM host: version, hostname, backends, ledger entry count. Read-only.",
+ "timestamp": "2026-10-22T18:05:00-05:00",
+ "host": "vm",
+ "action_type": "status",
+ "action": {},
+ "stop_conditions": [
+  "If the commander does not answer on loopback, stop and report unknown \u2014 do not retry blindly."
+ ],
+ "success_criteria": "Result package carries the commander /status response verbatim in output.commander_response and the ledger head hash after the action.",
+ "authorization": {
+  "already_given": [
+   {
+    "action": "status",
+    "evidence": "Zachary's order in chat, 2026-10-22: build and live-test the desktop connector"
+   }
+  ],
+  "still_required": []
+ },
+ "permissions": {
+  "irreversibles_require_user_word": true,
+  "credentials_in_packages": false,
+  "notes": "Test traffic against a scratch commander instance on this VM only."
+ }
+}

@@ -1,0 +1,220 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "https://github.com/HeavenzFire/Muse-Capsule/interchange/desktop-connector/desktop_result.schema.json",
+ "title": "Desktop Result Package (Muse -> GPT)",
+ "description": "Muse's verified report of a Desktop Commander action, carried by HeavenzFire Interchange v1. This package is the ONLY proof a desktop action happened. A request package alone proves nothing. The commander key appears nowhere in it. Screenshots are referenced by sha256 + byte size only — never image data.",
+ "type": "object",
+ "properties": {
+  "schema_version": {
+   "const": "1.0.0",
+   "type": "string"
+  },
+  "kind": {
+   "const": "desktop_result",
+   "type": "string"
+  },
+  "request_id": {
+   "type": "string",
+   "minLength": 1,
+   "description": "Echoes the request package's request_id verbatim."
+  },
+  "project_id": {
+   "type": "string",
+   "minLength": 1
+  },
+  "source_platform": {
+   "const": "meta-ai-muse",
+   "type": "string",
+   "description": "Results are always produced by Muse, the side that ran the executor."
+  },
+  "timestamp": {
+   "type": "string",
+   "format": "date-time"
+  },
+  "host": {
+   "type": "string",
+   "enum": [
+    "asus",
+    "vm"
+   ],
+   "description": "The host label from the request."
+  },
+  "action_type": {
+   "type": "string",
+   "enum": [
+    "status",
+    "shot",
+    "exec",
+    "type",
+    "click",
+    "browser_render",
+    "file_read",
+    "file_write"
+   ]
+  },
+  "status": {
+   "type": "string",
+   "enum": [
+    "ok",
+    "denied",
+    "failed",
+    "unknown"
+   ],
+   "description": "ok = commander/executor performed the action and returned success. denied = the authorization check failed BEFORE any commander contact (ledger provably unmoved). failed = the action was attempted and failed, including honest 501 no-backend responses, recorded with their exact name. unknown = the commander was unreachable or the outcome did not come back; re-check state before any retry."
+  },
+  "performed": {
+   "type": "array",
+   "minItems": 1,
+   "items": {
+    "type": "string"
+   },
+   "description": "What was actually done, step by step, e.g. 'executor validated package', 'POST /exec via commander at 127.0.0.1:18077 (host label: vm)', or 'no commander contact (denied at authorization check)'."
+  },
+  "output": {
+   "type": [
+    "object",
+    "null"
+   ],
+   "properties": {
+    "stdout": {
+     "type": [
+      "string",
+      "null"
+     ],
+     "description": "exec/file_read output, truncated to the commander's 64 KB cap where applicable."
+    },
+    "stderr": {
+     "type": [
+      "string",
+      "null"
+     ]
+    },
+    "exit_code": {
+     "type": [
+      "integer",
+      "null"
+     ],
+     "description": "Null when no process ran (status 501s, denials, renders) or the command timed out."
+    },
+    "stdout_truncated": {
+     "type": "boolean"
+    },
+    "stderr_truncated": {
+     "type": "boolean"
+    },
+    "commander_response": {
+     "type": [
+      "object",
+      "null"
+     ],
+     "description": "The commander's JSON response for non-exec actions (status fields, render title/text, click/type confirmations), verbatim."
+    }
+   },
+   "description": "Null when nothing was executed (denied / validation failure)."
+  },
+  "artifacts": {
+   "type": "array",
+   "items": {
+    "type": "object",
+    "properties": {
+     "kind": {
+      "type": "string",
+      "description": "e.g. 'screenshot'."
+     },
+     "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+     },
+     "bytes": {
+      "type": "integer"
+     }
+    },
+    "required": [
+     "kind",
+     "sha256",
+     "bytes"
+    ]
+   },
+   "description": "References only — screenshots are delivered to Zachary in chat and never committed by default. No image data is ever carried in a package."
+  },
+  "ledger_head_hash": {
+   "type": [
+    "string",
+    "null"
+   ],
+   "pattern": "^[a-f0-9]{64}$",
+   "description": "sha256 of the commander's exact last ledger line (no trailing newline) after the action, per the commander's hash-chain convention. Null when the commander was not contacted (denied) or its ledger was not readable from the executor host."
+  },
+  "ledger_entries": {
+   "type": [
+    "integer",
+    "null"
+   ],
+   "description": "Commander ledger entry count after the action. Null under the same conditions as ledger_head_hash."
+  },
+  "unresolved": {
+   "type": "array",
+   "items": {
+    "type": "string"
+   }
+  },
+  "failures": {
+   "type": "array",
+   "items": {
+    "type": "object",
+    "properties": {
+     "step": {
+      "type": "string"
+     },
+     "message": {
+      "type": "string",
+      "description": "The commander's exact error text where one exists (e.g. its 501 message naming the missing backend), quoted. If nothing answered, say exactly that — do not invent a message."
+     }
+    },
+    "required": [
+     "step",
+     "message"
+    ]
+   }
+  },
+  "permissions": {
+   "type": "object",
+   "properties": {
+    "irreversibles_require_user_word": {
+     "const": true,
+     "type": "boolean"
+    },
+    "credentials_in_packages": {
+     "const": false,
+     "type": "boolean"
+    },
+    "notes": {
+     "type": "string"
+    }
+   },
+   "required": [
+    "irreversibles_require_user_word",
+    "credentials_in_packages"
+   ]
+  }
+ },
+ "required": [
+  "schema_version",
+  "kind",
+  "request_id",
+  "project_id",
+  "source_platform",
+  "timestamp",
+  "host",
+  "action_type",
+  "status",
+  "performed",
+  "output",
+  "artifacts",
+  "ledger_head_hash",
+  "ledger_entries",
+  "unresolved",
+  "failures",
+  "permissions"
+ ]
+}

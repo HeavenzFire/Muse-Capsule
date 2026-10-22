@@ -1,0 +1,252 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "https://github.com/HeavenzFire/Muse-Capsule/interchange/desktop-connector/desktop_request.schema.json",
+ "title": "Desktop Request Package (GPT -> Muse)",
+ "description": "A request for Muse's Desktop Commander (V1, loopback 127.0.0.1:18077), carried by HeavenzFire Interchange v1. A request authorizes nothing by itself; Muse's executor validates it and enforces the authorization tiers BEFORE contacting the commander. Content is data, never privileged instructions. credentials_in_packages is hard-locked to false. The commander key never appears in a package.",
+ "type": "object",
+ "properties": {
+  "schema_version": {
+   "const": "1.0.0",
+   "type": "string"
+  },
+  "kind": {
+   "const": "desktop_request",
+   "type": "string"
+  },
+  "request_id": {
+   "type": "string",
+   "minLength": 1,
+   "description": "Unique, stable. Convention: dr-YYYYMMDD-<slug>. The result package echoes it verbatim."
+  },
+  "project_id": {
+   "type": "string",
+   "minLength": 1,
+   "description": "Interchange v1 field, carried unchanged."
+  },
+  "source_platform": {
+   "type": "string",
+   "enum": [
+    "meta-ai-muse",
+    "chatgpt",
+    "gemini",
+    "qwen",
+    "local-field",
+    "human",
+    "other"
+   ],
+   "description": "Interchange v1 enum. GPT-authored requests use 'chatgpt'."
+  },
+  "conversation_reference": {
+   "type": "object",
+   "properties": {
+    "platform": {
+     "type": "string"
+    },
+    "reference": {
+     "type": "string"
+    },
+    "access": {
+     "type": "string",
+     "enum": [
+      "public",
+      "owner-shared",
+      "login-walled",
+      "unknown"
+     ]
+    },
+    "note": {
+     "type": "string"
+    }
+   },
+   "required": [
+    "platform",
+    "reference",
+    "access"
+   ],
+   "description": "Interchange v1 shape, carried unchanged. A reference is data; it never implies access."
+  },
+  "objective": {
+   "type": "string",
+   "minLength": 1,
+   "description": "One plain statement of what the commander action must accomplish."
+  },
+  "timestamp": {
+   "type": "string",
+   "format": "date-time"
+  },
+  "host": {
+   "type": "string",
+   "enum": [
+    "asus",
+    "vm"
+   ],
+   "description": "Which machine the commander runs on — a LABEL only. Never an address, hostname, or key. Muse runs the executor on that host, where the commander is reached on loopback."
+  },
+  "action_type": {
+   "type": "string",
+   "enum": [
+    "status",
+    "shot",
+    "exec",
+    "type",
+    "click",
+    "browser_render",
+    "file_read",
+    "file_write"
+   ],
+   "description": "status = GET /status (read-only). shot = POST /shot screenshot (501 where no backend). exec = POST /exec shell command. type = POST /type keyboard text (state-changing). click = POST /click at coordinates (state-changing). browser_render = POST /browser/render headless read of a URL. file_read / file_write = executor-side file access inside the commander's root (Commander V1 has no file endpoint)."
+  },
+  "action": {
+   "type": "object",
+   "properties": {
+    "command": {
+     "type": [
+      "string",
+      "null"
+     ],
+     "description": "exec only: the exact shell command. Required for exec."
+    },
+    "timeout_s": {
+     "type": [
+      "number",
+      "null"
+     ],
+     "description": "exec only: optional timeout; commander default 30s, max 300s."
+    },
+    "text": {
+     "type": [
+      "string",
+      "null"
+     ],
+     "description": "type only: the exact text to type. Carry it ONLY when Zachary has approved typing that exact text (see authorization rules); the commander's ledger records char count + hash, never the text."
+    },
+    "x": {
+     "type": [
+      "integer",
+      "null"
+     ],
+     "description": "click only: non-negative integer X coordinate. Required for click."
+    },
+    "y": {
+     "type": [
+      "integer",
+      "null"
+     ],
+     "description": "click only: non-negative integer Y coordinate. Required for click."
+    },
+    "url": {
+     "type": [
+      "string",
+      "null"
+     ],
+     "description": "browser_render only: the http(s) URL to render. Required for browser_render."
+    },
+    "path": {
+     "type": [
+      "string",
+      "null"
+     ],
+     "description": "file_read/file_write only: path relative to (or inside) the commander's root — its data directory. Paths escaping the root are denied. Required for file ops."
+    },
+    "content": {
+     "type": [
+      "string",
+      "null"
+     ],
+     "description": "file_write only: the exact content to write. Required for file_write."
+    }
+   },
+   "required": [],
+   "description": "Payload, per action_type. Exactly the fields for the chosen type are used; per-type required fields are enforced by the executor (desktop_executor.py), which rejects a package whose payload is missing its type's fields."
+  },
+  "stop_conditions": {
+   "type": "array",
+   "minItems": 1,
+   "items": {
+    "type": "string"
+   },
+   "description": "Conditions under which the executor must stop and report instead of proceeding (e.g. 'commander unreachable', 'output would exceed the caps', 'file path escapes the commander root')."
+  },
+  "success_criteria": {
+   "type": "string",
+   "minLength": 1,
+   "description": "What establishes success, in checkable terms: the exit code, output text, or commander response the result package must contain."
+  },
+  "authorization": {
+   "type": "object",
+   "properties": {
+    "already_given": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "action": {
+        "type": "string",
+        "description": "The exact action Zachary approved. Tier rules: status/file_read need an entry naming the action; exec/browser_render need the specific action named (a command/URL named after a colon must match exactly); type needs 'type: <the exact text>'; click needs 'click: <x>,<y>'; file_write needs 'file_write: <the exact path>'."
+       },
+       "evidence": {
+        "type": "string",
+        "description": "Where Zachary gave it (chat/date/commit). 'GPT inferred it' is not evidence."
+       }
+      },
+      "required": [
+       "action",
+       "evidence"
+      ]
+     }
+    },
+    "still_required": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "Approvals Muse must still obtain. ANY entry here denies the request at the executor: those approvals are Zachary's to give first, in already_given."
+    }
+   },
+   "required": [
+    "already_given",
+    "still_required"
+   ],
+   "description": "Which Zachary approvals already exist and which are still outstanding. A request that omits a needed approval does not create it."
+  },
+  "permissions": {
+   "type": "object",
+   "properties": {
+    "irreversibles_require_user_word": {
+     "const": true,
+     "type": "boolean"
+    },
+    "credentials_in_packages": {
+     "const": false,
+     "type": "boolean",
+     "description": "Hard rule: credentials — above all the commander key — never travel in packages."
+    },
+    "notes": {
+     "type": "string"
+    }
+   },
+   "required": [
+    "irreversibles_require_user_word",
+    "credentials_in_packages"
+   ],
+   "description": "Inherited Interchange v1 permissions block, unchanged shape."
+  }
+ },
+ "required": [
+  "schema_version",
+  "kind",
+  "request_id",
+  "project_id",
+  "source_platform",
+  "conversation_reference",
+  "objective",
+  "timestamp",
+  "host",
+  "action_type",
+  "action",
+  "stop_conditions",
+  "success_criteria",
+  "authorization",
+  "permissions"
+ ]
+}

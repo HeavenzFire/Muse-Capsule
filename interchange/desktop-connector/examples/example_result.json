@@ -1,0 +1,49 @@
+{
+ "schema_version": "1.0.0",
+ "kind": "desktop_result",
+ "request_id": "dr-20261022-status-vm",
+ "project_id": "heavenzfire-unified-field",
+ "source_platform": "meta-ai-muse",
+ "timestamp": "2026-10-22T23:05:03+0000",
+ "host": "vm",
+ "action_type": "status",
+ "status": "ok",
+ "performed": [
+  "executor validated package: PASS",
+  "authorization check: PASS (tier for 'status')",
+  "GET /status via commander at http://127.0.0.1:18099 (host label: vm)"
+ ],
+ "output": {
+  "stdout": null,
+  "stderr": null,
+  "exit_code": null,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "commander_response": {
+   "ok": true,
+   "name": "desktop-commander",
+   "version": "1.0.0",
+   "hostname": "htch-runtime",
+   "os": "Linux-7.0.0-39-generic-x86_64-with-glibc2.39",
+   "system": "Linux",
+   "python": "3.12.3",
+   "uptime_s": 0.2,
+   "backends": {
+    "screenshot": null,
+    "input": null,
+    "chromium": null
+   },
+   "ledger_entries": 0
+  }
+ },
+ "artifacts": [],
+ "ledger_head_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+ "ledger_entries": 0,
+ "unresolved": [],
+ "failures": [],
+ "permissions": {
+  "irreversibles_require_user_word": true,
+  "credentials_in_packages": false,
+  "notes": "Commander key read from COMMANDER_KEY_FILE at call time; written nowhere."
+ }
+}

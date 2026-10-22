@@ -1,0 +1,21 @@
+{
+ "schema_version": "1.0.0",
+ "kind": "desktop_request",
+ "request_id": "dr-bad-example",
+ "source_platform": "chatgpt",
+ "objective": "Deliberately invalid package for executor testing.",
+ "host": "moon",
+ "action_type": "teleport",
+ "action": {
+  "command": "echo hi"
+ },
+ "authorization": {
+  "already_given": [],
+  "still_required": []
+ },
+ "permissions": {
+  "irreversibles_require_user_word": true,
+  "credentials_in_packages": true,
+  "notes": "commander key token: hunter2-example-marker"
+ }
+}
