@@ -1,0 +1,1 @@
+{"name":"heavenzfire-persistent-agent-runtime","version":"0.1.0","private":true,"type":"module","scripts":{"test":"node --test"},"description":"Deterministic agent simulation, event replay and checkpoint tests."}
