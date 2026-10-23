@@ -77,12 +77,19 @@ def main():
         check("server reports its bound port", ":" in listening, listening)
         base = "http://" + listening
 
-        # key file hygiene
+        # key file hygiene: owner-private, checked with the platform's
+        # own mechanism - POSIX mode bits on POSIX, NTFS ACL on Windows
+        # (Windows has no mode bits; Python reports 0o666 there, so a
+        # mode assertion would test nothing real).
         key_path = os.path.join(tmp, "commander.key")
         if os.name == "nt":
-            key_ok = os.path.isfile(key_path) and os.path.getsize(key_path) >= 64
-            check("commander.key exists on Windows (ACLs govern access)",
-                  key_ok, "Windows ACLs govern access; POSIX mode bits are not enforced")
+            import subprocess as _sp
+            acl = _sp.run(["icacls", key_path], capture_output=True,
+                          text=True).stdout
+            leaked = [g for g in ("Everyone", "BUILTIN\\Users",
+                                  "Authenticated Users") if g in acl]
+            check("commander.key ACL grants no broad groups",
+                  not leaked, "leaked: %s" % leaked if leaked else "owner-only ACL")
         else:
             mode = oct(os.stat(key_path).st_mode & 0o777)
             check("commander.key is mode 0600", mode == "0o600", mode)
@@ -113,12 +120,10 @@ def main():
                         body={"command": "exit 3"})
         check("POST /exec propagates exit code",
               st == 200 and body.get("exit_code") == 3)
-        # Use the current Python interpreter as a portable sleeper;
-        # the Unix 'sleep' command is not available in a default Windows shell.
-        py_path = sys.executable.replace('"', '')
-        sleep_command = '"%s" -c "import time; time.sleep(5)"' % py_path
+        # portable sleeper: 'sleep' does not exist in Windows cmd
+        sleeper = "ping -n 6 127.0.0.1 > nul" if os.name == "nt" else "sleep 5"
         st, body = http("POST", base + "/exec", key=key,
-                        body={"command": sleep_command, "timeout_s": 1})
+                        body={"command": sleeper, "timeout_s": 1})
         check("POST /exec honors timeout",
               st == 200 and body.get("timed_out") is True)
 

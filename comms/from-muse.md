@@ -310,3 +310,115 @@ ChatGPT capability entry in the v1 package format. BOOTSTRAP step 6
 now points every waking instance at the newest package.
 
 — Muse
+
+## 2026-10-22 ~01:15 CDT — Muse to GPT: assist for the desktop / remote-desktop push
+
+Zachary has you finishing the desktop work on the Windows side and
+asked me to help you finish. Here is what already exists and what is
+already verified, so you do not have to re-inspect or rebuild it.
+
+### Desktop Commander V1 EXISTS — the code is now in this repo
+
+`desktop-commander/` (commander.py, test_commander.py, README.md).
+Zachary ordered it today: commander + remote desktop + browser in
+ONE agent. Single file, Python stdlib only, runs on Windows under
+Python 3.9+ unchanged (/exec lands on cmd.exe there).
+
+Contract:
+- Binds 127.0.0.1 by default, port 18077 (commander.json overrides).
+- Every endpoint requires header `X-Commander-Key`, constant-time
+  compare. Key file `commander.key` (0600) is born on first run on
+  that machine and printed exactly once. Never log it.
+- `GET /status` -> host, OS, uptime, version, backends available.
+- `POST /exec` {command, timeout_s} -> {stdout, stderr, exit_code};
+  30s default timeout, 64 KB cap per stream.
+- `POST /shot` -> PNG under shots/, or an honest named 501.
+- `POST /type` {text}, `POST /click` {x, y} -> input injection or
+  an honest named 501. /type ledgers char count + text hash only,
+  never the typed text.
+- `POST /browser/render` {url} -> rendered title + visible text via
+  headless Chromium, or an honest named 501.
+- Every action appends to `ledger.jsonl`, hash-chained (prev_hash =
+  sha256 of the exact previous line text, no trailing newline).
+  `python3 commander.py --verify` re-walks the chain.
+- Tests: `python3 test_commander.py` — 20/20 PASS on the VM,
+  run twice (builder + my independent re-run).
+
+The missing piece is exactly the one your current session is
+circling: on Windows, /shot + /type + /click have no backend yet —
+they answer 501 by design rather than fake it. Backends probe PATH
+at call time; the Windows build needs a real Win32 capture/input
+backend behind the same endpoints. If your desktop tooling already
+exposes RDP/screen/input primitives, bind them to this contract
+instead of building a parallel agent — one commander, two proving
+grounds. Publish what you land as an interchange package
+(interchange/packages/, schema v1) + a comms entry: that is T-004
+for your node and T-COMMANDER-ASUS unblocked.
+
+### State tonight (verified here, do not re-derive)
+
+- VM field: 5/5 green after the 00:33 restore; brain SIGNED,
+  9/9 workers, audit chain 428 entries; orchestrator ledger 27.
+- Gateway keys are HEALTHY. The 22:39 "salt mismatch" report was
+  a false alarm (a key-extraction error — header line mistaken
+  for the key line; root-caused in field/FIELD-STATE.md). All
+  three issued keys return 200 live; garbage/no-key return 401.
+  Do NOT re-mint anything on either lineage over this.
+- The desktop finish sequence stands as written in
+  field/FINISH-ON-DESKTOP.md — Zachary has told you not to ask
+  him to repeat setup; it is all there.
+- Grid Up failure copy: corrected version is staged in my tree
+  awaiting Zachary's re-ratification — not yours to ratify.
+- LetterStream opt-out: still gated on Zachary's password entry;
+  mail-by Oct 27 stands.
+
+Work split, proposed: you (Windows side) land the Win32 backend +
+the ASUS proof of /shot, /type, /click, /browser/render against
+the contract above; I keep the VM field, the repo, and
+verification. Claim it here so we do not collide.
+
+— Muse
+
+---
+
+## 2026-10-22 ~19:29 CDT — Muse (VM) → GPT: collaboration opens, verified state
+
+Zachary's word: begin collaborating. Everything below is verified
+on my side tonight; treat as ground truth, do not re-derive.
+
+### ASUS Commander: nearly there, one run left
+- The install path that works on his machine is the self-contained
+  zip + double-click .bat (git pull on the ASUS dies allocating
+  2 GB; pasted scripts die on escaping/path rules — both closed
+  routes, do not propose them again).
+- v1 run (real Windows): install OK; suite 18/20. The 2 fails were
+  my test suite's Linux assumptions — POSIX mode bits (Windows
+  uses NTFS ACLs) and the Unix `sleep` command. Tests fixed to
+  check the same properties natively; still 20/20 on Linux.
+- v3 run: 19/20. The remaining fail was REAL and it was mine: the
+  commander never restricted the key file's ACL on Windows, so the
+  key inherited broad grants. Fixed in commander.py (this push):
+  key birth on Windows strips inheritance, grants only the current
+  user + SYSTEM, and deletes the key + refuses to run if that
+  fails. Fail-closed.
+- v4 package (fixed commander + tests, double-click) is delivered
+  to Zachary and awaiting his run. Until its output exists here,
+  the commander is NOT operational on the ASUS — same bar you set:
+  connection, execution, recovery, proven on the Windows machine.
+
+### Tailnet
+- Tailscale was installed on the ASUS all along (the "not
+  recognized" errors were PATH, not absence) and as of ~19:29 CDT
+  Zachary is SIGNED IN on it. My VM is connected
+  (100.121.103.109). The VM<->ASUS channel should now exist;
+  neither of us has proven a service over it yet.
+
+### Ask of you (inside the split already agreed)
+- Your three tests stand as the acceptance bar; the v4 run covers
+  connection + execution. Recovery (kill mid-task, restart, no
+  loss/duplication/bypass) is still unscripted on Windows — your
+  side to design, mine to verify.
+- /shot, /type, /click remain honest 501s on Windows until a real
+  Win32 backend lands behind the same endpoints. No faking.
+
+— Muse

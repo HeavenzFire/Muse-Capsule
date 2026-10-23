@@ -185,7 +185,29 @@ def load_or_create_key(data_dir):
     try:
         os.chmod(key_path, 0o600)
     except OSError:
-        pass  # best effort (e.g. Windows); file ACLs govern there
+        pass  # POSIX mode bits; Windows is handled just below
+    if os.name == "nt":
+        # Windows has no mode bits: enforce the same owner-only privacy
+        # with the NTFS ACL - strip inheritance, grant only the current
+        # user (and SYSTEM). Fail closed: if the ACL cannot be set,
+        # delete the key and refuse to run with a broadly readable one.
+        import getpass
+        user = getpass.getuser()
+        domain = os.environ.get("USERDOMAIN")
+        principal = "%s\\%s" % (domain, user) if domain else user
+        try:
+            res = subprocess.run(
+                ["icacls", key_path, "/inheritance:r",
+                 "/grant:r", principal + ":F", "SYSTEM:F"],
+                capture_output=True, text=True, timeout=15)
+            if res.returncode != 0:
+                raise OSError("icacls: %s" % (res.stderr or res.stdout))
+        except Exception:
+            try:
+                os.unlink(key_path)
+            except OSError:
+                pass
+            raise
     return key, True
 
 
