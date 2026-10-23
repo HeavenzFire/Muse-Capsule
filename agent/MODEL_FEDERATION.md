@@ -50,6 +50,32 @@ Only use an endpoint you trust and are authorized to access. Compatibility
 varies between providers; this adapter targets `POST /chat/completions` and
 the conventional `choices[0].message.content` response shape.
 
+## External providers require a per-run opt-in
+
+Selecting an external (non-loopback) provider sends the capsule — soul,
+standing orders, and memory — plus the run's evolving tool transcript to a
+third party. Configuring a provider is therefore not standing consent for
+every run. Before any request is made, an external run refuses to proceed
+unless you opt in for that run, in either of two equivalent ways:
+
+```powershell
+python .\agent.py --provider deepseek --allow-external-provider "your task"
+# or, for the run's shell only:
+$env:HF_ALLOW_EXTERNAL = "1"
+```
+
+Local/loopback providers (including Ollama and endpoints on 127.0.0.1 or
+localhost) are unaffected and never require the opt-in.
+
+Related transport rules, enforced in `providers.py`:
+
+- Provider base URLs must be `https://`; `http://` is accepted only for
+  loopback hosts. This includes DeepSeek's overridable `HF_AGENT_BASE_URL`.
+- If a provider endpoint redirects a request to a different origin, the
+  `Authorization` header is stripped rather than forwarded to the new host.
+- Provider-side retention and training use are governed by that provider's
+  terms; this code cannot control what a provider keeps.
+
 ## Status semantics
 
 `python .\agent.py --provider-status` reports local configuration only; it
