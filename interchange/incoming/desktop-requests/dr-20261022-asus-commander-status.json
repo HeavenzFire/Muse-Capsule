@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0.0",
+  "kind": "desktop_request",
+  "request_id": "dr-20261022-asus-commander-status",
+  "project_id": "heavenzfire-unified-field",
+  "source_platform": "chatgpt",
+  "conversation_reference": {
+    "platform": "chatgpt",
+    "reference": "Current conversation, 2026-10-22: Zachary directed us to finish the existing Unified Field bridge",
+    "access": "owner-shared",
+    "note": "Reference is context only; executor must enforce authorization."
+  },
+  "objective": "Read the Desktop Commander status on the ASUS host and return the actual status response, host identity, version, available backends, and ledger entry count. Do not execute a shell command or alter configuration.",
+  "timestamp": "2026-10-23T03:00:00Z",
+  "host": "asus",
+  "action_type": "status",
+  "action": {},
+  "stop_conditions": [
+    "If the commander is unreachable, report connection failure without retrying blindly.",
+    "Do not change network settings, restart services, expose ports, or read/return the commander key.",
+    "Do not run any command beyond the read-only status request."
+  ],
+  "success_criteria": "A desktop_result package echoes this request_id and contains the actual authenticated GET /status response, HTTP status, and ledger head hash; host is confirmed as the ASUS rather than the VM.",
+  "authorization": {
+    "already_given": [
+      {
+        "action": "status",
+        "evidence": "Zachary's prior explicit direction in this conversation and ongoing project instructions to finish and verify the existing desktop bridge; status is read-only."
+      }
+    ],
+    "still_required": []
+  },
+  "permissions": {
+    "irreversibles_require_user_word": true,
+    "credentials_in_packages": false,
+    "notes": "Read-only handshake only. Commander key remains on the ASUS and must never enter GitHub packages."
+  }
+}
