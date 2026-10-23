@@ -750,6 +750,10 @@ def main(argv):
                     help="show configured provider status without making a network call")
     ap.add_argument("--provider", choices=("ollama", "deepseek", "openai-compatible"),
                     help="override HF_AGENT_PROVIDER for this run")
+    ap.add_argument("--allow-external-provider", action="store_true",
+                    help="per-run opt-in: allow this run to send the capsule and "
+                         "tool transcript to an external (non-loopback) provider "
+                         "(sets HF_ALLOW_EXTERNAL=1 for this run only)")
     ap.add_argument("--verify-audit", action="store_true",
                     help="verify the audit chain and exit")
     ap.add_argument("--capsule-check", action="store_true",
@@ -758,6 +762,8 @@ def main(argv):
 
     if ns.provider:
         os.environ["HF_AGENT_PROVIDER"] = ns.provider
+    if ns.allow_external_provider:
+        os.environ["HF_ALLOW_EXTERNAL"] = "1"
     if ns.provider_status:
         print(json.dumps(provider_status(), sort_keys=True, indent=2))
         return 0
