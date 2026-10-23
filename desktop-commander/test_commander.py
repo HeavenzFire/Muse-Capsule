@@ -79,8 +79,13 @@ def main():
 
         # key file hygiene
         key_path = os.path.join(tmp, "commander.key")
-        mode = oct(os.stat(key_path).st_mode & 0o777)
-        check("commander.key is mode 0600", mode == "0o600", mode)
+        if os.name == "nt":
+            key_ok = os.path.isfile(key_path) and os.path.getsize(key_path) >= 64
+            check("commander.key exists on Windows (ACLs govern access)",
+                  key_ok, "Windows ACLs govern access; POSIX mode bits are not enforced")
+        else:
+            mode = oct(os.stat(key_path).st_mode & 0o777)
+            check("commander.key is mode 0600", mode == "0o600", mode)
 
         # auth
         st, _ = http("GET", base + "/status")
@@ -108,8 +113,12 @@ def main():
                         body={"command": "exit 3"})
         check("POST /exec propagates exit code",
               st == 200 and body.get("exit_code") == 3)
+        # Use the current Python interpreter as a portable sleeper;
+        # the Unix 'sleep' command is not available in a default Windows shell.
+        py_path = sys.executable.replace('"', '')
+        sleep_command = '"%s" -c "import time; time.sleep(5)"' % py_path
         st, body = http("POST", base + "/exec", key=key,
-                        body={"command": "sleep 5", "timeout_s": 1})
+                        body={"command": sleep_command, "timeout_s": 1})
         check("POST /exec honors timeout",
               st == 200 and body.get("timed_out") is True)
 
