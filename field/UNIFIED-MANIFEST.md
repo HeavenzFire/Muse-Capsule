@@ -2,7 +2,7 @@
 
 **Status:** DRAFT / cross-lineage review in progress  
 **Machine-readable companion:** [UNIFIED-MANIFEST.json](./UNIFIED-MANIFEST.json)  
-**Last source review:** 2026-10-22  
+**Last source review:** 2026-10-24 (repository-artifact review; no fresh host probes performed in this pass)  
 **Authority rule:** this document summarizes the JSON manifest; when details differ, reconcile both in a commit rather than silently treating either as proof of a live service.
 
 ## 1. Purpose and boundaries
@@ -38,7 +38,7 @@ Every status claim should identify the host, date/time, probe or test, and evide
 
 | Service | Loopback endpoint | Reported state / evidence |
 |---|---|---|
-| Prime brain | 127.0.0.1:18081 | LIVE-VERIFIED in FIELD-STATE.md; 9/9 workers healthy at the recorded check; audit chain reported valid |
+| Prime brain | 0.0.0.0:18081 | LISTENING and key-gated (401 without a key) in Muse's VM probe 2026-10-23 ~02:05 CDT; this bind contradicts the loopback-only policy. Remediation and a new socket probe are pending. Earlier 9/9 worker/audit evidence is from FIELD-STATE.md 2026-10-21, not re-verified in that probe. |
 | Node | 127.0.0.1:18090 | LIVE-VERIFIED in FIELD-STATE.md |
 | Mesh | 127.0.0.1:18091 | LIVE-VERIFIED in FIELD-STATE.md |
 | Orchestrator | 127.0.0.1:18082 | LIVE-VERIFIED in FIELD-STATE.md; separate hash-chained ledger |
@@ -49,16 +49,16 @@ The VM is supervised by the unified-field systemd unit and field/supervise.sh; f
 
 ### B. Windows hub (ZDH)
 
-**Evidence level:** REPORTED by the GPT handoff in comms/from-gpt.md, dated 2026-10-21; not independently verified by the VM reviewer in this pass.
+**Evidence level:** mixed and time-stamped. The 2026-10-22 22:15 CDT Windows diagnostic supersedes the 2026-10-21 report for gateway, orchestrator, agent, and Ollama bind. No new Windows probe was performed during this document update.
 
 | Service | Loopback endpoint | Reported state |
 |---|---|---|
-| Gateway | 127.0.0.1:8787 | Responded in the recorded Windows probe |
-| Orchestrator | 127.0.0.1:8788 | Responded in the recorded Windows probe |
-| Agent | 127.0.0.1:8790 | Responded in the recorded Windows probe |
-| Task inbox | 127.0.0.1:18796/api/tasks | Proposal/readback round trip reported; task remained proposed/pending, not executed |
-| Ollama | 127.0.0.1:11434 | Models reported: qwen2.5:0.5b, heavenzfire-runtime:latest, heavenzfire:latest, llama3.2:1b |
-| Workers | 18101–18103 | DOWN in the last reported baseline; see issue #7 |
+| Gateway | 127.0.0.1:8787 | DOWN: loopback connection refused in Windows diagnostic 2026-10-22 22:15 CDT; supersedes the 2026-10-21 report |
+| Orchestrator | 127.0.0.1:8788 | DOWN: loopback connection refused in Windows diagnostic 2026-10-22 22:15 CDT; supersedes the 2026-10-21 report |
+| Agent | 127.0.0.1:8790 | DOWN: loopback connection refused in Windows diagnostic 2026-10-22 22:15 CDT; supersedes the 2026-10-21 report |
+| Task inbox | 127.0.0.1:18796/api/tasks | REPORTED proposal/readback round trip on 2026-10-21; not included in the 2026-10-22 port probe, so current state is UNKNOWN |
+| Ollama | `[::]:11434` | OBSERVED listening on all interfaces in Windows diagnostic 2026-10-22; models reported: qwen2.5:0.5b, heavenzfire-runtime:latest, heavenzfire:latest, llama3.2:1b. No authentication was reported; treat this as an exposure risk until the bind is restricted or an explicitly approved authenticated access path is verified. |
+| Workers | 18101–18103 | DOWN in the last reported baseline; see issue #7 |\n| Worker-control stack | 18111–18126; mesh health `127.0.0.1:8081/health`; bridge source `C:\\Users\\rucke\\HeavenzFire\\UnifiedField\\QuantumLab\\heavenzfire-mesh-bridge.cjs` | DOCUMENTED from the Windows control banner 2026-10-22 22:33 CDT; endpoints and process status were not measured, so state is UNKNOWN |
 
 The repo does not establish that hostname ZDH is the ASUS FA706IH. Treat that mapping as UNVERIFIED until confirmed on the machine. A passing VM check does not close a Windows task.
 
@@ -116,8 +116,8 @@ Required desktop acceptance evidence:
 
 | Priority / item | Current state | Closure evidence |
 |---|---|---|
-| P1 — Windows worker endpoints 18101–18103 | DOWN in last reported baseline; issue #7 | Before/after endpoint responses from the Windows host; no VM substitution |
-| P1 — verifier report lock | Windows report could not be written in the recorded run; issue #8 | Identify/avoid the file holder or use atomic/per-run output; clean run produces a report artifact |
+| P1 — Windows worker endpoints 18101–18103 and worker-control 18111–18126 | 18101–18103 were DOWN in the last report; 18111–18126 are documented but UNKNOWN; issues #7 and #4 | Host-side endpoint responses for both ranges and mesh health 8081; no VM substitution |
+| P1 — VM brain bind | Observed on `0.0.0.0:18081` on 2026-10-23, wider than policy | Change the VM service bind to loopback, then repeat socket, health, and unauthenticated-access probes |\n| P1 — Windows Ollama exposure | `[::]:11434` observed 2026-10-22; no authentication reported | Restrict bind to loopback or obtain explicit approval for a scoped authenticated access path; verify from a second host |\n| P1 — verifier report lock | Windows report could not be written in the recorded run; issue #8 | Identify/avoid the file holder or use atomic/per-run output; clean run produces a report artifact |
 | P1 — local Commander | Installer previously reported 18/20 tests; two failures were Windows-incompatible tests. A source fix was committed but not yet proven on the ASUS | Windows test output and status/exec proof artifacts |
 | P1 — desktop field instantiation | Pending; see field/FINISH-ON-DESKTOP.md | All five health checks plus a harmless task with a settled ledger entry on Windows |
 | P1 — production key ceremony | Pending on Zachary's hardware | Ceremony output and signature verification; no production private key committed |
