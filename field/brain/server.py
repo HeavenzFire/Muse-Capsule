@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""PRIME LAN server on port 18081 (stdlib only).
+"""PRIME brain server on port 18081 (stdlib only).
 
 - GET  /status      -> health, mode, workers, audit head
 - POST /chat        -> {"text": "...", "session": "..."} -> entity reply
 - POST /consolidate -> memory consolidation
 - POST /approve     -> {"task_id": "..."} -> consent gate approval
 
-Binds 0.0.0.0:18081. Allow Python through Windows Firewall on
-PRIVATE networks only.
+Binds to 127.0.0.1 by default. Set BRAIN_HOST only when an explicitly
+approved, authenticated network path requires a wider bind.
 """
 import json
 import os
@@ -218,8 +218,9 @@ if __name__ == "__main__":
     import scheduler
     _sched_stop = scheduler.start(kernel, memory, get_capsule)
     print("scheduler: on (tasks.json)")
-    srv = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
-    print("PRIME brain on 0.0.0.0:%d  (model %s)" % (PORT, entity.MODEL))
+    bind_host = os.environ.get("BRAIN_HOST", "127.0.0.1")
+    srv = ThreadingHTTPServer((bind_host, PORT), Handler)
+    print("PRIME brain on %s:%d  (model %s)" % (bind_host, PORT, entity.MODEL))
     print(" capsule: %s" % get_capsule().get("mode"))
     try:
         srv.serve_forever()
