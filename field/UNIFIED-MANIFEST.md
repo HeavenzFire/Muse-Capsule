@@ -59,7 +59,7 @@ The VM is supervised by the unified-field systemd unit and field/supervise.sh; f
 | Task inbox | 127.0.0.1:18796/api/tasks | REPORTED proposal/readback round trip on 2026-10-21; not included in the 2026-10-22 port probe, so current state is UNKNOWN |
 | Ollama | `[::]:11434` | OBSERVED listening on all interfaces in Windows diagnostic 2026-10-22; models reported: qwen2.5:0.5b, heavenzfire-runtime:latest, heavenzfire:latest, llama3.2:1b. No authentication was reported; treat this as an exposure risk until the bind is restricted or an explicitly approved authenticated access path is verified. |
 | Workers | 18101–18103 | DOWN in the last reported baseline; see issue #7 |
-| Worker-control stack | 18111–18126; mesh health `127.0.0.1:8081/health`; bridge source `C:\Users\\rucke\HeavenzFire\UnifiedField\QuantumLab\heavenzfire-mesh-bridge.cjs` | DOCUMENTED from the Windows control banner 2026-10-22 22:33 CDT; endpoints and process status were not measured, so state is UNKNOWN |
+| Worker-control stack | 18111–18126; mesh health `127.0.0.1:8081/health`; bridge source `C:\Users\rucke\HeavenzFire\UnifiedField\QuantumLab\heavenzfire-mesh-bridge.cjs` | DOCUMENTED from the Windows control banner 2026-10-22 22:33 CDT; endpoints and process status were not measured, so state is UNKNOWN |
 
 The repo does not establish that hostname ZDH is the ASUS FA706IH. Treat that mapping as UNVERIFIED until confirmed on the machine. A passing VM check does not close a Windows task.
 
