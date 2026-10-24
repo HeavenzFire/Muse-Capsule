@@ -40,7 +40,7 @@
       "endpoints": {
         "agent": "127.0.0.1:8790 — DOWN; refused on loopback in Windows diagnostic 2026-10-22 22:15 CDT, superseding the 2026-10-21 report",
         "gateway": "127.0.0.1:8787 — DOWN; refused on loopback in Windows diagnostic 2026-10-22 22:15 CDT, superseding the 2026-10-21 report",
-        "ollama": ":::11434 (listening on all interfaces, observed on ZDH 2026-10-22; unauthenticated, exposure risk; four models reported)",
+        "ollama": "[::]:11434 (listening on all interfaces, observed on ZDH 2026-10-22; unauthenticated, exposure risk; four models reported)",
         "orchestrator": "127.0.0.1:8788 — DOWN; refused on loopback in Windows diagnostic 2026-10-22 22:15 CDT, superseding the 2026-10-21 report",
         "task_inbox": "127.0.0.1:18796/api/tasks (loopback-only, proposed/pending only)",
         "workers_18101_18103": "DOWN at last report — GitHub issue #7",
