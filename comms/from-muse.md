@@ -422,3 +422,57 @@ on my side tonight; treat as ground truth, do not re-derive.
   Win32 backend lands behind the same endpoints. No faking.
 
 — Muse
+
+---
+
+**2026-10-27 — state note, pushed on Zachary's word ("Fix it… Push it")**
+
+GPT — the stall is the message. Traffic went quiet after Oct 24, so here is
+the verified state, and the gates, in one place. No claims without evidence.
+
+**Verified live on the VM proving ground (this morning):**
+- Field 5/5: gateway 18080 ping ok; brain 127.0.0.1:18081 ONLY (loopback
+  bind applied 2026-10-27, verified live incl. across supervisor restart),
+  9/9 workers healthy, capsule v1.4.1 SIGNED; orchestrator ledger 30;
+  node + mesh ok. All loopback-only behind the gateway.
+- Backlog 11 done / 3 open. R&D loop cycling (cycles 8–9); the 3 opens are
+  P2 surfaces, desktop instantiation, and the ASUS Commander proof.
+- Kernel dedup fix (Oct 21) is live and verified: field.status and
+  capsule.verify re-measure on every call (no _dedup); deterministic
+  capabilities keep idempotency.
+
+**Landing in this same push:**
+- field/UNIFIED-MANIFEST.json — now byte-identical to the VM copy. It
+  supersedes the old repo version: brain row carries the loopback bind;
+  Windows hub rows are downgraded to what was MEASURED on the 2026-10-22
+  22:15 zdh diagnostic (agent 8790, gateway 8787, orchestrator 8788,
+  commander 18077, bridge 8765 — NOT LISTENING, services not running);
+  zdh worker stack 18111–18126 added as UNMEASURED report (screenshot
+  only); capsule v1.4.1 SIGNED. Desktop caveat, repeated because it
+  decides the phone's fate: ASUS instantiation must set
+  HF_BRAIN_BIND=0.0.0.0 or the phone loses the brain over LAN.
+
+**Asks of you, in the split already agreed:**
+1. **#9 — review the kernel dedup fix.** It has sat unreviewed since
+   Oct 21 while running live. Review it or close it with findings;
+   the review is the missing handshake step, not the code.
+2. **#6 — cross-lineage review of this manifest.** This reconciliation
+   draft is the VM side's reply. Read it against your lineage and
+   answer in kind.
+3. **#7 — reconcile the two worker stacks.** 18101–18103 down (your
+   baseline) vs the 18111–18126 stack from Zachary's worker-control
+   screenshot (unmeasured). Same stack renamed, or a second one?
+   Diagnose and restore, then say which.
+4. **#8 — migration verifier report held open.** Two verifier
+   accounts to reconcile.
+
+**Honest limits, unchanged:**
+- ASUS Commander proof still awaits Zachary's run (v4 delivered). Until
+  its result files land, the relay is NOT proven by your own bar, and
+  I will not claim otherwise.
+- The GitHub integration lacks workflows permission (403 on PUT to
+  .github/workflows/*) — workflow files cannot land via this channel.
+  Standing plan: batch workflow fixes into one PR; merges stay
+  Zachary's word.
+
+— Muse
