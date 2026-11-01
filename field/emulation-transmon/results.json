@@ -1,0 +1,101 @@
+{
+  "device": "3-level transmon |0>,|1>,|2>, rotating frame at omega_01",
+  "alpha_MHz": -250.0,
+  "alpha_rad_per_ns": -1.5707963267948966,
+  "sigma_ns": 2.0,
+  "window_ns": [
+    -10.0,
+    10.0
+  ],
+  "dt_ns": 0.01,
+  "omega0_rad_per_ns": 0.6266570686577502,
+  "omega0_MHz_cyclic": 99.73557010035817,
+  "drag_formula": "Q(t) = -dI/dt / alpha",
+  "screenshot_comparison": "Screenshot showed ~24.1% leakage over a 10 ns drive. That is a comparison point only, NOT a target and NOT reproduced. This run uses a 20 ns window and sigma=2 ns; see P2 values below.",
+  "legs": {
+    "without_DRAG_unitary": {
+      "final_P0": 0.027480606075056747,
+      "final_P1_fidelity_to_|1>": 0.9718026300905895,
+      "final_P2_leakage": 0.0007167638343538858,
+      "max_P2_during_drive": 0.06464825603107975,
+      "population_conservation_max_error": 9.992007221626409e-16
+    },
+    "with_DRAG_unitary": {
+      "final_P0": 0.03062390273611823,
+      "final_P1_fidelity_to_|1>": 0.9693743204264799,
+      "final_P2_leakage": 1.7768374022513774e-06,
+      "max_P2_during_drive": 0.044318647734019,
+      "population_conservation_max_error": 3.3306690738754696e-16
+    },
+    "without_DRAG_lindblad_T1_T2": {
+      "T1_us": 50.0,
+      "T2_us": 30.0,
+      "Tphi_us": 42.857142857142854,
+      "final_P0": 0.02767711999568594,
+      "final_P1_fidelity_to_|1>": 0.9716018846174868,
+      "final_P2_leakage": 0.0007209953868272927,
+      "max_P2_during_drive": 0.06464729566198443,
+      "trace_conservation_max_error": 8.881784197001252e-16
+    },
+    "with_DRAG_lindblad_T1_T2": {
+      "T1_us": 50.0,
+      "T2_us": 30.0,
+      "Tphi_us": 42.857142857142854,
+      "final_P0": 0.030820439818976295,
+      "final_P1_fidelity_to_|1>": 0.9691748708225014,
+      "final_P2_leakage": 4.689358522699727e-06,
+      "max_P2_during_drive": 0.04431832998268165,
+      "trace_conservation_max_error": 1.7763568394002505e-15
+    }
+  },
+  "sensitivity_unitary_final_P2": {
+    "alpha_-200MHz_sigma_1.5ns": {
+      "without_DRAG": 0.06331430000638635,
+      "with_DRAG": 0.0013940242288721452
+    },
+    "alpha_-200MHz_sigma_2.0ns": {
+      "without_DRAG": 0.008849753582108273,
+      "with_DRAG": 7.333131446658037e-05
+    },
+    "alpha_-200MHz_sigma_3.0ns": {
+      "without_DRAG": 2.5099997181725117e-05,
+      "with_DRAG": 1.7913968576012562e-06
+    },
+    "alpha_-250MHz_sigma_1.5ns": {
+      "without_DRAG": 0.015234139454497394,
+      "with_DRAG": 0.00016095612496676604
+    },
+    "alpha_-250MHz_sigma_2.0ns": {
+      "without_DRAG": 0.0007167638343538858,
+      "with_DRAG": 1.7768374022513774e-06
+    },
+    "alpha_-250MHz_sigma_3.0ns": {
+      "without_DRAG": 5.047951222513446e-07,
+      "with_DRAG": 2.5404244179568716e-07
+    },
+    "alpha_-300MHz_sigma_1.5ns": {
+      "without_DRAG": 0.0026972005340192826,
+      "with_DRAG": 1.3009633358636528e-05
+    },
+    "alpha_-300MHz_sigma_2.0ns": {
+      "without_DRAG": 3.2232527657705614e-05,
+      "with_DRAG": 2.9495457012360766e-07
+    },
+    "alpha_-300MHz_sigma_3.0ns": {
+      "without_DRAG": 3.974085196749665e-07,
+      "with_DRAG": 4.3734811349711206e-07
+    }
+  },
+  "time_dilation": {
+    "device_time_ns": 20.0,
+    "wall_time_seconds_all_legs_and_sensitivity": 3.473092419999375,
+    "note": "Device time is nanoseconds; wall time is seconds of computer execution. The dynamics are dilated (magnified) to computer timescale; this is not real-time hardware execution and not a hardware speed claim."
+  },
+  "not_verified": [
+    "No real hardware was run.",
+    "No hardware measurement was reproduced.",
+    "No claim that this model equals any specific device, chip, or lab result.",
+    "Decoherence rates T1/T2 are typical-order assumptions, stated above, not measured.",
+    "DRAG here is first-order quadrature correction only; no detuning correction, no pulse-distortion or readout model."
+  ]
+}
